@@ -1,0 +1,19 @@
+{
+  "name": "com.flagsmith.unity",
+  "version": "0.1.0",
+  "displayName": "Flagsmith for Unity",
+  "description": "Feature flags, remote config and Experimentation for Unity, built on UnityWebRequest so it runs on WebGL, Android and iOS. Works with Flagsmith Cloud or self-hosted Flagsmith.",
+  "unity": "6000.0",
+  "license": "MIT",
+  "keywords": [
+    "flagsmith",
+    "feature flags",
+    "remote config",
+    "a/b testing",
+    "experimentation"
+  ],
+  "dependencies": {
+    "com.unity.nuget.newtonsoft-json": "3.2.1",
+    "com.unity.modules.unitywebrequest": "1.0.0"
+  }
+}

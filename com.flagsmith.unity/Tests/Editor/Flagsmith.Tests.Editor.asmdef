@@ -1,0 +1,10 @@
+{
+  "name": "Flagsmith.Tests.Editor",
+  "rootNamespace": "Flagsmith.Tests",
+  "references": ["Flagsmith.Runtime", "UnityEngine.TestRunner", "UnityEditor.TestRunner"],
+  "includePlatforms": ["Editor"],
+  "overrideReferences": true,
+  "precompiledReferences": ["nunit.framework.dll", "Newtonsoft.Json.dll"],
+  "defineConstraints": ["UNITY_INCLUDE_TESTS"],
+  "autoReferenced": false
+}

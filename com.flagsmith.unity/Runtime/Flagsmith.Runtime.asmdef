@@ -1,0 +1,6 @@
+{
+  "name": "Flagsmith.Runtime",
+  "rootNamespace": "Flagsmith",
+  "references": [],
+  "autoReferenced": true
+}
