@@ -1,0 +1,25 @@
+CLAUDE.md
+AGENTS.md
+notes/
+.claude/
+.DS_Store
+.env
+.env.*
+node_modules/
+# seed output (holds the local admin token)
+server/.seed.json
+# Unity generated
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+*.csproj
+*.sln
+*.slnx
+*.pidb
+*.userprefs
+.vs/
+.idea/
