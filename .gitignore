@@ -23,3 +23,5 @@ server/.seed.json
 *.userprefs
 .vs/
 .idea/
+Sample/Assets/Resources/flagsmith.json
+Sample/Assets/Resources/flagsmith.json.meta

@@ -81,9 +81,15 @@ namespace Flagsmith
         public async Task<Flag> GetExperimentFlag(string featureName, string identifier, IDictionary<string, object> traits = null)
         {
             var flag = (await GetIdentityFlags(identifier, traits)).Get(featureName);
-            if (flag != null && flag.Enabled && flag.InExperiment && flag.Variant != null && flag.ExperimentId != null)
-                TrackExposureEvent(featureName, identifier, flag.Variant, flag.ExperimentId.Value);
+            TrackExposure(flag, identifier);
             return flag;
+        }
+
+        /// <summary>Records a "$flag_exposure" for a flag you already fetched, if the identity is enrolled in its experiment.</summary>
+        public void TrackExposure(Flag flag, string identifier)
+        {
+            if (flag != null && flag.Enabled && flag.InExperiment && flag.Variant != null && flag.ExperimentId != null)
+                TrackExposureEvent(flag.Name, identifier, flag.Variant, flag.ExperimentId.Value);
         }
 
         /// <summary>Records an application event, such as a conversion, for Experimentation metrics.</summary>

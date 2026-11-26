@@ -126,6 +126,11 @@ def main():
            "project_id": project["id"], "experiment_id": experiment["id"]}
     with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".seed.json"), "w") as f:
         json.dump(out, f, indent=2)
+    # The sample game reads its connection from here (gitignored; the key is client-side and safe to ship).
+    sample = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Sample", "Assets", "Resources")
+    os.makedirs(sample, exist_ok=True)
+    with open(os.path.join(sample, "flagsmith.json"), "w") as f:
+        json.dump({"api_url": out["api_url"], "environment_key": key}, f, indent=2)
     print(f"Dashboard: {base}  login {EMAIL} / {PASSWORD}")
     print(f"Environment key (client-side, safe to ship): {key}")
 
