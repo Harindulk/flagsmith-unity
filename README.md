@@ -97,7 +97,7 @@ flagsmith.TrackEvent("first_run_complete");
 flagsmith.TrackEvent("purchase", 4.99, new Dictionary<string, object> { ["item"] = "starter_pack" });
 ```
 
-The dashboard then does the statistics. This is the demo's `tutorial_style` experiment on self-hosted Flagsmith after `server/simulate.py` sent 400 synthetic players through it (named `sim-…`, every event tagged `synthetic: true`):
+The dashboard then does the statistics. This is the demo's `tutorial_style` experiment on self-hosted Flagsmith after `server/simulate.py` sent 400 synthetic players through it (named `sim-…`, every event tagged `synthetic: true`). The other 10 enrolled are our own test sessions in the Editor and WebGL:
 
 ![Flagsmith experiment results: hand variant +15.3% lift over control, 95% chance to be best](docs/media/experiment-results.png)
 
@@ -168,7 +168,7 @@ The full guide and API reference are in [Documentation~/index.md](com.flagsmith.
 
 | Platform | Status |
 |---|---|
-| Unity Editor (macOS) | Tested: 18 automated tests, including one against a live self-hosted server (Flagsmith 2.295.2, pinned in `server/docker-compose.yml`) |
+| Unity Editor (macOS) | Tested: 19 automated tests, including one against a live self-hosted server (Flagsmith 2.295.2, pinned in `server/docker-compose.yml`) |
 | WebGL | Tested: Flag Runner build in Chrome, Live Tuning and experiment events confirmed in Flagsmith |
 | Android | IL2CPP ARM64 release build fetched its flags from the self-hosted server on an Android 16 emulator. Not yet tried on a physical phone |
 | iOS, Windows, macOS, Linux players | Uses only `UnityWebRequest` and main-thread code, but not yet tested |

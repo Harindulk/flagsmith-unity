@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
@@ -22,6 +23,7 @@ namespace Flagsmith.Editor
             public int StateId;
             public string Name, Description, Value, SavedValue;
             public bool Enabled, SavedEnabled, Saving;
+            public JTokenType ValueType; // the server's type for this value, kept when saving
             public bool Dirty => Enabled != SavedEnabled || Value != SavedValue;
         }
 
@@ -103,10 +105,11 @@ namespace Flagsmith.Editor
                     var f = features[(int)s["feature"]];
                     var value = Flag.AsText(s["feature_state_value"]) ?? ""; // the text field returns "" for null, which would mark the row dirty
                     var enabled = (bool)s["enabled"];
+                    var type = s["feature_state_value"]?.Type ?? JTokenType.Null;
                     return new Row
                     {
                         StateId = (int)s["id"], Name = (string)f["name"], Description = (string)f["description"],
-                        Value = value, SavedValue = value, Enabled = enabled, SavedEnabled = enabled,
+                        Value = value, SavedValue = value, Enabled = enabled, SavedEnabled = enabled, ValueType = type,
                     };
                 }).OrderBy(r => r.Name).ToList();
                 status = $"{rows.Count} flags in {(string)env["name"]}.";
@@ -118,16 +121,29 @@ namespace Flagsmith.Editor
         async Task Save(Row row)
         {
             row.Saving = true;
+            // What is sent is what counts as saved, even if the row is edited while the request is out.
+            var enabled = row.Enabled;
+            var value = row.Value;
             try
             {
-                var body = new JObject { ["enabled"] = row.Enabled, ["feature_state_value"] = row.Value == "" ? null : row.Value };
+                var body = new JObject { ["enabled"] = enabled };
+                if (value != row.SavedValue) body["feature_state_value"] = Typed(value, row.ValueType); // a toggle alone leaves the value alone
                 await Call("PATCH", $"environments/{environmentKey}/featurestates/{row.StateId}/", body.ToString(Formatting.None));
-                row.SavedEnabled = row.Enabled;
-                row.SavedValue = row.Value;
+                row.SavedEnabled = enabled;
+                row.SavedValue = value;
                 status = $"Saved {row.Name}.";
             }
             catch (Exception e) { status = e.Message; }
             finally { row.Saving = false; Repaint(); }
+        }
+
+        // Flagsmith stores the JSON type it receives, so an integer flag must stay an integer.
+        static JToken Typed(string value, JTokenType type)
+        {
+            if (value == "") return JValue.CreateNull();
+            if (type == JTokenType.Integer && long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n)) return n;
+            if (type == JTokenType.Boolean && bool.TryParse(value, out var b)) return b;
+            return value;
         }
 
         async Task<JToken> Call(string method, string path, string body = null)
@@ -138,7 +154,7 @@ namespace Flagsmith.Editor
             if (body != null) request.Headers["Content-Type"] = "application/json";
             var res = await transport.Send(request);
             if (!res.IsSuccess) throw new Exception($"{method} {path} failed: {res.Error ?? "HTTP " + res.Status} {res.Body}");
-            return JToken.Parse(res.Body);
+            return string.IsNullOrEmpty(res.Body) ? null : Json.Parse(res.Body);
         }
     }
 }

@@ -7,6 +7,8 @@ namespace Flagsmith
     /// Marks a field or property that takes its value from a Flagsmith flag.
     /// bool members follow the flag's enabled state; other types take the flag's value.
     /// When the flag is missing or its value can't be converted, the member keeps its current value.
+    /// Enums (by name, any case) and nullable types work. With IL2CPP and High stripping, mark bound
+    /// properties with [UnityEngine.Scripting.Preserve] so the linker keeps setters only reflection calls.
     /// </summary>
     /// <example>
     /// [FlagsmithValue("run_speed")] float runSpeed = 7f;
@@ -16,7 +18,6 @@ namespace Flagsmith
     public sealed class FlagsmithValueAttribute : Attribute
     {
         const BindingFlags Members = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
-        static readonly MethodInfo GetValue = typeof(Flags).GetMethod(nameof(Flags.GetValue));
 
         public string FlagName { get; }
 
@@ -39,6 +40,6 @@ namespace Flagsmith
         static object Read(Flags flags, string name, Type type, object current) =>
             type == typeof(bool)
                 ? flags.IsEnabled(name)
-                : GetValue.MakeGenericMethod(type).Invoke(flags, new[] { name, current });
+                : Flags.Convert(flags.Get(name).Value, type, current);
     }
 }

@@ -39,7 +39,7 @@ namespace Flagsmith
             if (v == null || v.Type == JTokenType.Null) return null;
             if (v.Type == JTokenType.Boolean) return (bool)v ? "true" : "false";
             if (v.Type == JTokenType.Float) return ((double)v).ToString("R", CultureInfo.InvariantCulture);
-            return Convert.ToString(((JValue)v).Value, CultureInfo.InvariantCulture);
+            return System.Convert.ToString(((JValue)v).Value, CultureInfo.InvariantCulture);
         }
     }
 
@@ -64,18 +64,21 @@ namespace Flagsmith
         public bool IsEnabled(string name) => Get(name)?.Enabled ?? false;
 
         /// <summary>The flag's value converted to T, or <paramref name="fallback"/> when it is missing, null or unparsable.</summary>
-        public T GetValue<T>(string name, T fallback)
+        public T GetValue<T>(string name, T fallback) => (T)Convert(Get(name)?.Value, typeof(T), fallback);
+
+        /// <summary>Non-generic conversion, so IL2CPP needs no generic instantiation per member type.</summary>
+        internal static object Convert(string raw, Type target, object fallback)
         {
-            var raw = Get(name)?.Value;
             if (raw == null) return fallback;
+            var type = Nullable.GetUnderlyingType(target) ?? target;
             try
             {
-                var target = typeof(T);
-                if (target == typeof(string)) return (T)(object)raw;
-                if (target == typeof(bool)) return (T)(object)bool.Parse(raw);
-                return (T)Convert.ChangeType(raw, target, CultureInfo.InvariantCulture);
+                if (type == typeof(string)) return raw;
+                if (type == typeof(bool)) return bool.Parse(raw);
+                if (type.IsEnum) return Enum.Parse(type, raw, true);
+                return System.Convert.ChangeType(raw, type, CultureInfo.InvariantCulture);
             }
-            catch (Exception e) when (e is FormatException || e is InvalidCastException || e is OverflowException)
+            catch (Exception e) when (e is FormatException || e is InvalidCastException || e is OverflowException || e is ArgumentException)
             {
                 return fallback;
             }

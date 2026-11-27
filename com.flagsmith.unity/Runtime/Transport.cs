@@ -28,7 +28,7 @@ namespace Flagsmith
         }
 
         public bool IsSuccess => Status >= 200 && Status < 300;
-        public bool IsRetryable => Status == 0 || Status >= 500;
+        public bool IsRetryable => Status == 0 || Status == 408 || Status == 429 || Status >= 500;
     }
 
     public interface ITransport

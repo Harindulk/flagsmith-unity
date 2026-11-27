@@ -29,6 +29,7 @@ namespace Flagsmith
         public event Action<Flags> FlagsChanged;
 
         string _signature;
+        int _refreshSeq;
 
         /// <summary>Call right after AddComponent when you configure from code instead of the Inspector.</summary>
         public void Init(FlagsmithOptions opts, string id = null, float refresh = 60f)
@@ -81,15 +82,23 @@ namespace Flagsmith
 
         public async Task Refresh()
         {
+            var seq = ++_refreshSeq;
             var flags = await Client.GetIdentityFlags(Identifier, Traits);
             if (this == null) return; // destroyed while waiting
+            if (seq != _refreshSeq) return; // a newer refresh (e.g. after a trait change) was started; its answer wins
             // Offline with no cache gives empty defaults; keep the last good flags instead.
             if (flags.Source == FlagSource.Defaults && Flags.All.Count > 0) return;
             Flags = flags;
             var sig = string.Join("\n", flags.All.OrderBy(f => f.Name).Select(f => $"{f.Name}|{f.Enabled}|{f.Value}|{f.Variant}"));
             if (sig == _signature) return;
             _signature = sig;
-            FlagsChanged?.Invoke(flags);
+            if (FlagsChanged == null) return;
+            // One subscriber throwing must not hide the change from the others.
+            foreach (Action<Flags> handler in FlagsChanged.GetInvocationList())
+            {
+                try { handler(flags); }
+                catch (Exception e) { Debug.LogException(e); }
+            }
         }
 
         async void RefreshLoop()
@@ -114,7 +123,8 @@ namespace Flagsmith
                 while (true)
                 {
                     await WaitRealtime(Mathf.Max(1f, flushSeconds));
-                    await Client.FlushEvents();
+                    try { await Client.FlushEvents(); }
+                    catch (Exception e) when (!(e is OperationCanceledException)) { Debug.LogException(e); } // events stay queued
                 }
             }
             catch (OperationCanceledException) { }
@@ -133,12 +143,20 @@ namespace Flagsmith
         void OnApplicationPause(bool paused) { if (paused) SaveAndFlush(); }
         void OnApplicationFocus(bool focused) { if (!focused) SaveAndFlush(); }
         void OnApplicationQuit() => SaveAndFlush();
+        void OnDestroy() => SaveAndFlush(); // a scene change must not lose the last few seconds of events
 
         void SaveAndFlush()
         {
             if (Client == null) return;
             Client.SaveEvents();
-            _ = Client.FlushEvents();
+            FlushQuietly(Client);
+        }
+
+        // async void keeps the continuation on Unity's main thread (no thread pool, so WebGL is fine).
+        static async void FlushQuietly(FlagsmithClient client)
+        {
+            try { await client.FlushEvents(); }
+            catch (Exception e) { Debug.LogException(e); }
         }
 
         static string PersistentId()

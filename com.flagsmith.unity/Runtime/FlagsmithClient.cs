@@ -124,18 +124,21 @@ namespace Flagsmith
             try
             {
                 var batches = _events.TakeBatches(_nowMs());
-                for (var i = 0; i < batches.Count; i++)
+                try
                 {
-                    var res = await Send("POST", _eventsUrl, batches[i]);
-                    if (res.IsSuccess) continue;
-                    if (res.IsRetryable)
+                    for (var i = 0; i < batches.Count; i++)
                     {
-                        for (var j = batches.Count - 1; j >= i; j--) _events.Requeue(batches[j]);
-                        Debug.LogWarning($"[Flagsmith] Events not sent ({res.Error ?? "HTTP " + res.Status}); will retry.");
-                        return;
+                        var res = await Send("POST", _eventsUrl, batches[i]);
+                        if (res.IsRetryable)
+                        {
+                            Debug.LogWarning($"[Flagsmith] Events not sent ({res.Error ?? "HTTP " + res.Status}); will retry.");
+                            return;
+                        }
+                        if (!res.IsSuccess) Debug.LogError($"[Flagsmith] Events API rejected a batch (HTTP {res.Status}): {res.Body}");
+                        _events.Acknowledge(i); // delivered, or rejected for good: retrying a 4xx would fail the same way
                     }
-                    Debug.LogError($"[Flagsmith] Events API rejected a batch (HTTP {res.Status}): {res.Body}");
                 }
+                finally { _events.ReturnUnsent(); } // also when Send throws, so nothing is lost
             }
             finally
             {
@@ -163,7 +166,15 @@ namespace Flagsmith
         }
 
         static Flags Parse(JToken flags, FlagSource source) =>
-            new Flags(flags is JArray a ? a.Select(Flag.FromJson) : Enumerable.Empty<Flag>(), source);
+            new Flags(flags is JArray a ? a.Select(TryFlag).Where(f => f != null) : Enumerable.Empty<Flag>(), source);
+
+        // One malformed entry must not cost the player every other flag.
+        static Flag TryFlag(JToken t)
+        {
+            if (!(t is JObject)) return null;
+            try { return Flag.FromJson(t); }
+            catch (Exception e) when (!(e is OutOfMemoryException)) { return null; }
+        }
 
         async Task<(JToken body, FlagSource source)?> Fetch(string method, string url, string body, string cacheKey, Func<JToken, bool> isFlags)
         {
@@ -186,7 +197,7 @@ namespace Flagsmith
         static JToken TryParse(string json)
         {
             if (string.IsNullOrEmpty(json)) return null;
-            try { return JToken.Parse(json); }
+            try { return Json.Parse(json); }
             catch (JsonReaderException) { return null; }
         }
 

@@ -191,7 +191,8 @@ public sealed class FlagRunner : MonoBehaviour
         // Count the exposure only if the tutorial on screen is the variant Flagsmith served this player
         // (not the offline default), so the experiment never credits a variant nobody saw.
         var served = flagsmith?.Flags.Get("tutorial_style");
-        if (served != null && served.Value == tutorial) flagsmith.GetExperimentFlag("tutorial_style");
+        // Autoplay is a bot, not a player: its runs never enter the experiment.
+        if (!autoplay && served != null && served.Value == tutorial) flagsmith.GetExperimentFlag("tutorial_style");
     }
 
     void Jump()
@@ -250,7 +251,7 @@ public sealed class FlagRunner : MonoBehaviour
         {
             goalSent = true;
             // Only the player's very first run counts: a later run reaching 100 m is not a "first run complete".
-            if (firstRun) flagsmith?.TrackEvent("first_run_complete", Mathf.RoundToInt(distance));
+            if (firstRun && !autoplay) flagsmith?.TrackEvent("first_run_complete", Mathf.RoundToInt(distance));
             trauma = Mathf.Max(trauma, 0.25f);
         }
     }

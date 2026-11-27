@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -7,7 +8,8 @@ namespace Flagsmith
 {
     /// <summary>
     /// Queues Experimentation events and cuts them into batches the events API accepts:
-    /// at most 2 MiB a request, nothing older than 10 days, one copy of each exposure per batch.
+    /// at most 2 MiB a request, nothing older than 10 days, one copy of each exposure.
+    /// Taken batches stay "in flight" until acknowledged, so saving mid-flush or a failed send loses nothing.
     /// </summary>
     public sealed class EventBuffer
     {
@@ -17,60 +19,79 @@ namespace Flagsmith
         public const int MaxQueued = 10000;
 
         readonly List<JObject> _queue = new List<JObject>();
-        readonly HashSet<string> _exposureKeys = new HashSet<string>();
+        readonly List<List<JObject>> _inFlight = new List<List<JObject>>();
+        readonly HashSet<string> _exposureKeys = new HashSet<string>(); // queued or in flight
 
-        public int Count => _queue.Count;
+        /// <summary>Events not yet delivered, including those being sent.</summary>
+        public int Count => _queue.Count + _inFlight.Sum(b => b?.Count ?? 0);
 
         public void Add(JObject e)
         {
             if (IsExposure(e) && !_exposureKeys.Add(ExposureKey(e))) return;
-            if (_queue.Count >= MaxQueued) _queue.RemoveAt(0);
+            if (_queue.Count >= MaxQueued)
+            {
+                Forget(_queue[0]);
+                _queue.RemoveAt(0);
+            }
             _queue.Add(e);
         }
 
-        /// <summary>Removes everything queued and returns it as request bodies, oldest first.</summary>
+        /// <summary>
+        /// Moves everything queued in flight and returns it as request bodies, oldest first.
+        /// Call <see cref="Acknowledge"/> for each batch the server took (or rejected for good), then <see cref="ReturnUnsent"/>.
+        /// </summary>
         public List<string> TakeBatches(long nowMs)
         {
-            var batches = new List<string>();
-            var current = new List<string>();
+            var bodies = new List<string>();
+            var current = new List<JObject>();
+            var json = new List<string>();
             var size = 0;
             const int envelope = 14; // {"events":[ ]}
             foreach (var e in _queue)
             {
-                if (nowMs - (long)e["timestamp"] > MaxAgeMs) continue;
-                var json = e.ToString(Formatting.None);
-                var bytes = Encoding.UTF8.GetByteCount(json) + 1;
-                if (bytes + envelope > MaxBatchBytes) continue; // one event can never fit: drop it
+                var text = e.ToString(Formatting.None);
+                var bytes = Encoding.UTF8.GetByteCount(text) + 1;
+                // Too old for the API, or too big to ever fit: drop it.
+                if (nowMs - ((long?)e["timestamp"] ?? 0) > MaxAgeMs || bytes + envelope > MaxBatchBytes) { Forget(e); continue; }
                 if (size + bytes + envelope > MaxBatchBytes)
                 {
-                    batches.Add(Wrap(current));
-                    current.Clear();
+                    bodies.Add(Wrap(json));
+                    _inFlight.Add(current);
+                    current = new List<JObject>();
+                    json = new List<string>();
                     size = 0;
                 }
-                current.Add(json);
+                current.Add(e);
+                json.Add(text);
                 size += bytes;
             }
-            if (current.Count > 0) batches.Add(Wrap(current));
-            _queue.Clear();
-            _exposureKeys.Clear();
-            return batches;
-        }
-
-        /// <summary>Puts a batch that could not be delivered back at the front of the queue.</summary>
-        public void Requeue(string batchBody)
-        {
-            var events = (JArray)JObject.Parse(batchBody)["events"];
-            var restored = new List<JObject>();
-            foreach (JObject e in events)
+            if (current.Count > 0)
             {
-                restored.Add(e);
-                if (IsExposure(e)) _exposureKeys.Add(ExposureKey(e));
+                bodies.Add(Wrap(json));
+                _inFlight.Add(current);
             }
-            _queue.InsertRange(0, restored);
+            _queue.Clear();
+            return bodies;
         }
 
-        /// <summary>The queue as JSON, for saving across app restarts.</summary>
-        public string Save() => new JArray(_queue).ToString(Formatting.None);
+        /// <summary>The batch at <paramref name="index"/> (from the last TakeBatches) needs no further sending.</summary>
+        public void Acknowledge(int index)
+        {
+            if (index < 0 || index >= _inFlight.Count || _inFlight[index] == null) return;
+            foreach (var e in _inFlight[index]) Forget(e);
+            _inFlight[index] = null;
+        }
+
+        /// <summary>Puts every unacknowledged batch back at the front of the queue, in order.</summary>
+        public void ReturnUnsent()
+        {
+            _queue.InsertRange(0, _inFlight.Where(b => b != null).SelectMany(b => b));
+            _inFlight.Clear();
+        }
+
+        /// <summary>Everything not yet delivered (in flight first) as JSON, for saving across app restarts.</summary>
+        public string Save() =>
+            new JArray(_inFlight.Where(b => b != null).SelectMany(b => b).Concat(_queue)).ToString(Formatting.None);
 
         /// <summary>Adds events saved by <see cref="Save"/>. Ignores missing or unreadable data.</summary>
         public void Load(string json)
@@ -78,10 +99,16 @@ namespace Flagsmith
             if (string.IsNullOrEmpty(json)) return;
             try
             {
-                foreach (var e in JArray.Parse(json))
-                    if (e is JObject o) Add(o);
+                if (Json.Parse(json) is JArray events)
+                    foreach (var e in events)
+                        if (e is JObject o) Add(o);
             }
             catch (JsonReaderException) { }
+        }
+
+        void Forget(JObject e)
+        {
+            if (IsExposure(e)) _exposureKeys.Remove(ExposureKey(e));
         }
 
         static bool IsExposure(JObject e) => (string)e["event"] == ExposureEvent;
