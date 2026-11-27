@@ -2,7 +2,7 @@
 
 All notable changes to this package are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the package uses [Semantic Versioning](https://semver.org/).
 
-## [0.1.0] - Unreleased
+## [0.1.0] - 2026-11-27
 
 ### Added
 - `FlagsmithClient`: environment and identity flags with traits, typed `GetValue<T>`, invariant-culture parsing, one retry on network errors and HTTP 5xx.
