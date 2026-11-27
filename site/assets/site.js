@@ -71,7 +71,7 @@
     frame.addEventListener('load', () => frame.focus());
   });
 
-  // ---- How it works: one slider drives the clause and the fragment.
+  // ---- How it works: scrolling through the pinned section (or the slider) drives the clause and the fragment.
   const stages = [
     ['Someone edits a flag', 'In the Flagsmith dashboard, or in Window > Flagsmith inside Unity, run_speed goes from 7 to 11.'],
     ['The game asks again', 'FlagsmithBehaviour fetches this player\'s flags on a timer: every 2 seconds while you tune, every 60 in release.'],
@@ -80,8 +80,16 @@
   ];
   const stage = $('#stage');
   if (stage) {
+    const pin = stage.closest('.pin');
+    const pinned = pin && !matchMedia('(prefers-reduced-motion: reduce)').matches;
+    // Pinned: the thumb glides with the scroll (value 0..3) and each stage owns a quarter of the distance.
+    if (pinned) stage.step = 'any';
+    const index = () => pinned ? Math.min(3, Math.floor(stage.value / 3 * 4)) : Number(stage.value);
+    let shown = -1;
     const show = () => {
-      const i = Number(stage.value);
+      const i = index();
+      if (i === shown) return;
+      shown = i;
       $('#st-h').textContent = stages[i][0];
       $('#st-p').textContent = stages[i][1];
       $$('.frag').forEach(f => { f.hidden = Number(f.dataset.stage) !== i; });
@@ -89,8 +97,24 @@
       stage.style.setProperty('--fill', (i / 3 * 100) + '%');
       stage.setAttribute('aria-valuetext', stages[i][0]);
     };
-    stage.addEventListener('input', show);
-    $$('#stage-names li').forEach((li, j) => li.addEventListener('click', () => { stage.value = j; show(); }));
+    if (pinned) {
+      const span = () => pin.offsetHeight - innerHeight;
+      const top = () => pin.getBoundingClientRect().top + scrollY;
+      const sync = () => { stage.value = Math.max(0, Math.min(1, (scrollY - top()) / span())) * 3; show(); };
+      const go = (i, behavior) => scrollTo({ top: top() + span() * (i + 0.5) / 4, behavior });
+      addEventListener('scroll', sync, { passive: true });
+      addEventListener('resize', sync);
+      stage.addEventListener('input', () => scrollTo({ top: top() + span() * stage.value / 3, behavior: 'instant' }));
+      stage.addEventListener('keydown', e => {
+        const d = { ArrowRight: 1, ArrowUp: 1, ArrowLeft: -1, ArrowDown: -1 }[e.key];
+        if (d) { e.preventDefault(); go(Math.max(0, Math.min(3, index() + d)), 'instant'); }
+      });
+      $$('#stage-names li').forEach((li, j) => li.addEventListener('click', () => go(j, 'smooth')));
+      sync();
+    } else {
+      stage.addEventListener('input', show);
+      $$('#stage-names li').forEach((li, j) => li.addEventListener('click', () => { stage.value = j; show(); }));
+    }
     show();
   }
 
