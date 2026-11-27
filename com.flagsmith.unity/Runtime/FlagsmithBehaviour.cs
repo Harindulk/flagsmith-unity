@@ -82,6 +82,7 @@ namespace Flagsmith
 
         public async Task Refresh()
         {
+            if (Client == null) return; // no environment key yet
             var seq = ++_refreshSeq;
             var flags = await Client.GetIdentityFlags(Identifier, Traits);
             if (this == null) return; // destroyed while waiting

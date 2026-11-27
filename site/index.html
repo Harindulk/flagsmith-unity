@@ -152,7 +152,7 @@ flagsmith.FlagsChanged += flags =&gt;
 ShowTutorial(tut?.Value ?? <span class="tok-s">"text"</span>);
 <span class="tok-c">// later</span>
 flagsmith.TrackEvent(<span class="tok-s">"first_run_complete"</span>);</code></pre>
-      <p>Exposures are recorded only for enrolled players, and each one is sent once. Events are batched under the 2 MiB limit, saved to disk when the app pauses and retried after network errors.</p>
+      <p>Exposures are recorded only for enrolled players, and each one is sent once per session. Events are batched under the 2 MiB limit, saved to disk when the app pauses and retried after network errors.</p>
     </div>
     <figure class="fig framed">
       <img src="media/experiment-results.png" width="1400" height="1330" alt="Flagsmith experiment completed: hand is 19.8 percent ahead of text with over 99 percent chance to be best, and hand is rolled out to everyone" loading="lazy">

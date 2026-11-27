@@ -165,7 +165,7 @@ flagsmith.TrackEvent("first_run_complete", distance, new Dictionary<string, obje
 Details that matter for clean results:
 
 - Call `GetExperimentFlag` at the moment of exposure, not at startup. A player who never opens the shop shouldn't count as exposed to the shop experiment.
-- Calling it again is harmless. A duplicate exposure (same flag, identity, variant and experiment) is dropped until the first one has been delivered.
+- Calling it again is harmless. A duplicate exposure (same flag, identity, variant and experiment) is dropped for the rest of the session.
 - No exposure is recorded when the flag is off, the identity isn't enrolled, or there is no running experiment on the flag.
 - Event names starting with `$` are reserved, and `TrackEvent` throws for them.
 - `value` is sent as text (numbers with the invariant culture). `metadata` is any JSON-serialisable dictionary. The client adds `sdk_version`.
@@ -285,6 +285,7 @@ For tests, pass your own `ITransport` (see `FakeTransport` in the package tests)
 | `GetExperimentFlag` records nothing | The experiment isn't running, the flag is off, or the multivariate options have no `key` (then `Variant` is null) |
 | Values change in the dashboard but not in the game | Refresh Seconds is 0 or large, or you're editing a different environment |
 | Editor window: 401 or 403 | The admin token is wrong, or it's a user token used with the `Api-Key` scheme. Organisation keys contain a dot; user tokens don't |
+| Works in the Editor, fails in a build with "Insecure connection not allowed" | The API URL is plain `http://`. Unity blocks that in builds by default. Serve Flagsmith over HTTPS, or for local testing set Player Settings > Other Settings > Allow downloads over HTTP to "Always allowed" |
 | WebGL: requests blocked | The server must allow CORS for the game's origin and the `X-Environment-Key` header. Flagsmith Cloud and the default self-hosted image do |
 
 ## Set up with an AI coding agent

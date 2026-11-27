@@ -41,8 +41,9 @@ namespace Flagsmith.Tests
             Assert.Greater(flags.GetValue("run_speed", 0f), 0f);
 
             var flag = await client.GetExperimentFlag("tutorial_style", id);
-            Assert.IsTrue(flag.InExperiment, "the seeded experiment should be running");
-            CollectionAssert.Contains(new[] { "hand", "control" }, flag.Variant);
+            // Once the seeded experiment has been shipped nobody is enrolled; the flag then serves the winner to everyone.
+            if (flag.InExperiment) CollectionAssert.Contains(new[] { "hand", "control" }, flag.Variant);
+            else CollectionAssert.Contains(new[] { "hand", "text" }, (string)flag.Value);
 
             client.TrackEvent("first_run_complete", id, null, new System.Collections.Generic.Dictionary<string, object> { ["synthetic"] = true });
             await client.FlushEvents();
