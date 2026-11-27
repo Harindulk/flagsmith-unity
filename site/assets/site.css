@@ -137,6 +137,7 @@ section { position: relative; }
 .why-text p.first { color: var(--ink); font-weight: 500; }
 .why-media { grid-column: 6 / -1; }
 .why-media video, .why-media img { width: 100%; border-radius: var(--r); background: var(--stage); aspect-ratio: 960 / 580; object-fit: cover; }
+.why-media video { aspect-ratio: 960 / 600; }
 figcaption { font-size: var(--step-small); color: var(--muted); margin-top: 10px; }
 @media (max-width: 900px) { .why-text, .why-media { grid-column: 1 / -1; } }
 
