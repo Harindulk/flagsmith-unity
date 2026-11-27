@@ -53,6 +53,9 @@ def page_html(p, pages, body):
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>{html.escape(title)}</title>
 <meta name="description" content="Flagsmith for Unity documentation: {html.escape(p["title"])}.">
+<meta property="og:title" content="{html.escape(title)}">
+<meta property="og:image" content="https://harindulk.github.io/flagsmith-unity/media/og.png">
+<meta name="twitter:card" content="summary_large_image">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23141721'/%3E%3Crect x='9' y='9' width='14' height='14' rx='2' fill='%23ffb020' transform='rotate(12 16 16)'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -67,7 +70,7 @@ def page_html(p, pages, body):
   </a>
   <nav aria-label="Main">
     <button class="btn ink menu-btn" type="button" aria-expanded="false" aria-controls="docs-nav">Contents</button>
-    <a href="./" aria-current="page">Docs</a>
+    <a class="hide-s" href="./">Docs</a>
     <a class="hide-s" href="../#play">Playground</a>
     <a href="https://github.com/Harindulk/flagsmith-unity">GitHub</a>
   </nav>
@@ -127,7 +130,21 @@ def main():
         body = body.replace("<img ", '<img loading="lazy" ')
         (OUT / "docs" / p["file"]).write_text(page_html(p, pages, body), encoding="utf-8")
     write_llms(pages)
+    write_404()
     print(f"built {len(pages)} docs pages into {OUT.relative_to(ROOT)}/")
+
+
+def write_404():
+    page = (OUT / "index.html").read_text(encoding="utf-8")
+    head = page[:page.index("<main>")].replace("<title>Flagsmith for Unity</title>", "<title>Page not found · Flagsmith for Unity</title>")
+    # Pages serves 404.html for any path, so links must be absolute to the site root.
+    head = head.replace('href="assets/', 'href="/flagsmith-unity/assets/').replace('href="docs/', 'href="/flagsmith-unity/docs/') \
+               .replace('href="./"', 'href="/flagsmith-unity/"').replace('href="#play"', 'href="/flagsmith-unity/#play"')
+    body = """<main class="wrap" style="padding-block:15vh">
+  <h1 style="font-size:var(--step-display)">Page not found.</h1>
+  <p style="margin-top:24px;font-size:var(--step-lead)">Try the <a href="/flagsmith-unity/docs/">docs</a> or <a href="/flagsmith-unity/#play">play Flag Runner</a>.</p>
+</main></body></html>"""
+    (OUT / "404.html").write_text(head + body, encoding="utf-8")
 
 
 def write_llms(pages):

@@ -32,6 +32,7 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 img, video, iframe { display: block; max-width: 100%; }
+img, video { height: auto; }
 a { color: inherit; text-underline-offset: 0.18em; text-decoration-thickness: 0.07em; }
 a:hover { text-decoration-thickness: 0.14em; }
 :focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
@@ -40,7 +41,7 @@ h1, h2, h3 { font-weight: 600; letter-spacing: -0.035em; line-height: 1.0; margi
 p { margin: 0; }
 code, pre { font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace; font-size: 0.88em; }
 pre { margin: 0; background: var(--code-bg); color: var(--code-ink); padding: 20px 22px; border-radius: var(--r); overflow-x: auto; line-height: 1.55; }
-:not(pre) > code { background: var(--surface); padding: 0.1em 0.35em; border-radius: 4px; }
+:not(pre) > code { background: var(--surface); padding: 0.1em 0.35em; border-radius: 4px; overflow-wrap: anywhere; }
 .tok-k { color: #ff8fa3; } .tok-s { color: #ffd27a; } .tok-c { color: #8a91a8; } .tok-t { color: #7fd8e6; }
 
 .wrap { padding-inline: var(--m); }
@@ -87,7 +88,7 @@ pre { margin: 0; background: var(--code-bg); color: var(--code-ink); padding: 20
   position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 18px; text-align: center; color: var(--stage-ink);
   background: #141721 url("../media/flag-runner.png") center / cover no-repeat;
 }
-.play-game .start::before { content: ""; position: absolute; inset: 0; background: rgba(20, 23, 33, .62); }
+.play-game .start::before { content: ""; position: absolute; inset: 0; background: rgba(20, 23, 33, .84); }
 .play-game .start > * { position: relative; }
 .play-game .start p { color: var(--stage-muted); font-size: var(--step-small); }
 .play-note { grid-column: 1 / -1; color: var(--stage-muted); font-size: var(--step-small); padding: 6px 8px 4px; display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content: space-between; }
@@ -131,7 +132,7 @@ section { position: relative; }
 /* The problem: a narrow column and the footage */
 .why { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gap); align-items: start; }
 .why-text { grid-column: 1 / span 4; display: grid; gap: 1em; }
-.why-text h2 { font-size: var(--step-lead); letter-spacing: -0.02em; line-height: 1.25; }
+.why-text h2 { font-size: var(--step-head); }
 .why-text p { color: var(--muted); }
 .why-text p.first { color: var(--ink); font-weight: 500; }
 .why-media { grid-column: 6 / -1; }
@@ -147,12 +148,13 @@ figcaption { font-size: var(--step-small); color: var(--muted); margin-top: 10px
 .kill .k-sub { color: var(--stage-muted); transition: color .45s; }
 .kill.off .k-sub { color: #3b2a05; }
 .big-switch {
-  position: absolute; right: -1.1em; bottom: 9svh; font-size: clamp(40px, 9.5vw, 150px);
+  position: absolute; right: var(--m); bottom: 9svh; font-size: clamp(40px, 9.5vw, 150px);
   display: grid; gap: .25em; justify-items: start; color: inherit;
 }
 .big-switch .lbl { font-size: .32em; font-weight: 600; letter-spacing: -0.01em; display: flex; gap: .6em; align-items: baseline; }
 .big-switch .lbl span { font-weight: 400; opacity: .75; }
 .big-switch button {
+  font: inherit;
   width: 4.6em; height: 2.4em; border-radius: 1.2em; border: 0; padding: 0; cursor: pointer; position: relative;
   background: var(--accent); transition: background-color .3s;
 }
@@ -171,7 +173,7 @@ figcaption { font-size: var(--step-small); color: var(--muted); margin-top: 10px
 .stages .right { background: var(--stage); display: grid; place-items: center; padding: 48px var(--m) 180px; color: var(--stage-ink); }
 .stages h2 { font-size: clamp(2.5rem, 1.2rem + 3.4vw, 4.75rem); max-width: 10ch; transition: opacity .2s; }
 .stages .left p { margin-top: 24px; max-width: 36ch; transition: opacity .2s; }
-.frag { width: min(470px, 100%); transition: opacity .2s; }
+.frag { width: min(620px, 100%); transition: opacity .2s; }
 .frag[hidden] { display: none; }
 .frag img { border-radius: var(--r); width: 100%; }
 .frag pre { font-size: 14px; }
@@ -189,8 +191,7 @@ figcaption { font-size: var(--step-small); color: var(--muted); margin-top: 10px
   .stages { grid-template-columns: 1fr; }
   .stages .right { order: -1; padding: 40px var(--m); min-height: 46svh; }
   .stages .left { padding-bottom: 200px; }
-  .track ol { grid-template-columns: 1fr 1fr; gap: 6px; }
-  .track ol li { text-align: left !important; }
+  .track ol { font-size: 14px; }
 }
 
 /* Experiments and the Editor window: 5/7 splits */
@@ -234,7 +235,8 @@ figcaption { font-size: var(--step-small); color: var(--muted); margin-top: 10px
 .bands[hidden] { display: none; }
 @media (max-width: 900px) {
   .tabs { grid-template-columns: 1fr; gap: 20px; }
-  .tablist { grid-auto-flow: column; grid-auto-columns: minmax(120px, 1fr); overflow-x: auto; position: sticky; top: 0; z-index: 2; background: var(--bg); padding: 6px 0; }
+  .tablist { grid-template-columns: 1fr 1fr; }
+  .tablist button { min-height: 56px; }
   .band { grid-template-columns: 1fr; gap: 12px; }
 }
 
@@ -253,7 +255,7 @@ figcaption { font-size: var(--step-small); color: var(--muted); margin-top: 10px
 .foot .nav { grid-column: 5 / span 3; } .foot .nav ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .foot .nav a { text-decoration: none; } .foot .nav a:hover { text-decoration: underline; }
 .foot .made { grid-column: 8 / span 2; }
-.foot .repo { grid-column: 10 / span 3; } .foot .repo a { font-size: 20px; font-weight: 500; overflow-wrap: anywhere; }
+.foot .repo { grid-column: 10 / span 3; } .foot .repo a { font-size: 20px; font-weight: 500; }
 .foot .word { grid-column: 1 / span 8; background: var(--ink); color: var(--bg); min-height: 320px; justify-content: center; }
 .foot .word span { font-size: clamp(2.5rem, 0.5rem + 6.6vw, 7.5rem); font-weight: 600; letter-spacing: -0.045em; line-height: .95; }
 .foot .go { grid-column: 9 / span 4; background: var(--accent); color: var(--accent-ink); min-height: 320px; text-decoration: none; transition: background-color .15s; }
@@ -313,6 +315,7 @@ figcaption { font-size: var(--step-small); color: var(--muted); margin-top: 10px
 .pager a small { color: var(--muted); font-size: 13px; }
 .pager a.next { text-align: right; }
 .copy { position: relative; }
+.copy pre { padding-right: 84px; }
 .copy button { position: absolute; top: 8px; right: 8px; background: #262b3d; color: var(--stage-ink); border: 0; border-radius: 4px; font: 500 12.5px/1 inherit; font-family: inherit; padding: 7px 10px; cursor: pointer; opacity: .85; }
 .copy button:hover { opacity: 1; }
 .menu-btn { display: none; }

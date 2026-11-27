@@ -76,7 +76,7 @@
     ['Someone edits a flag', 'In the Flagsmith dashboard, or in Window > Flagsmith inside Unity, run_speed goes from 7 to 11.'],
     ['The game asks again', 'FlagsmithBehaviour fetches this player\'s flags on a timer: every 2 seconds while you tune, every 60 in release.'],
     ['The field follows the flag', 'Bind sets every [FlagsmithValue] member, then FlagsChanged fires once, only if something really changed.'],
-    ['The player feels it', 'The next jump uses the new value. No rebuild, no restart, no store review.'],
+    ['The player feels it', 'The next jump uses the new value, in the same session, from the same build.'],
   ];
   const stage = $('#stage');
   if (stage) {
@@ -103,9 +103,10 @@
     t.addEventListener('click', () => select(t));
     t.addEventListener('keydown', e => {
       const d = { ArrowDown: 1, ArrowRight: 1, ArrowUp: -1, ArrowLeft: -1 }[e.key];
-      if (!d) return;
+      const n = e.key === 'Home' ? tabs[0] : e.key === 'End' ? tabs[tabs.length - 1] : d ? tabs[(i + d + tabs.length) % tabs.length] : null;
+      if (!n) return;
       e.preventDefault();
-      const n = tabs[(i + d + tabs.length) % tabs.length]; select(n); n.focus();
+      select(n); n.focus();
     });
   });
 

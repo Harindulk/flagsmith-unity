@@ -29,11 +29,11 @@ def client(path, body):
         return json.loads(res.read() or b"null")
 
 
-def main(n):
-    rng = random.Random(7)
+def main(n, first=0):
+    rng = random.Random(7 + first)
     now = int(time.time() * 1000)
     events, seen = [], {"hand": 0, "control": 0}
-    for i in range(n):
+    for i in range(first, first + n):
         identity = f"sim-{i:04d}"
         flag = next(f for f in client("identities/", {"identifier": identity, "traits": []})["flags"]
                     if f["feature"]["name"] == "tutorial_style")
@@ -60,4 +60,5 @@ def main(n):
 
 
 if __name__ == "__main__":
-    main(int(sys.argv[1]) if len(sys.argv) > 1 else 400)
+    # python3 simulate.py [count] [first]: a second batch must start after the first, or players are counted twice.
+    main(int(sys.argv[1]) if len(sys.argv) > 1 else 400, int(sys.argv[2]) if len(sys.argv) > 2 else 0)

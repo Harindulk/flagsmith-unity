@@ -7,7 +7,7 @@ Change a jump height, switch off a broken feature or run an experiment on your t
 
 ![Flag Runner changing live: run speed, colour, gravity and a kill switch edited in Flagsmith while the game keeps running](docs/media/live-tuning.gif)
 
-*The sample game playing itself while `server/demo.py` edits flags in a self-hosted Flagsmith. No rebuilds, no restarts.*
+*The sample game playing itself while `server/demo.py` edits flags in a self-hosted Flagsmith. The build never changes.*
 
 ```csharp
 [FlagsmithValue("run_speed")] float runSpeed = 7f;      // follows the flag, keeps 7 when offline
@@ -29,7 +29,7 @@ Community package, MIT licensed. It is not an official Flagsmith SDK.
 - Experimentation: `GetExperimentFlag` records a `$flag_exposure` when the player is enrolled in a running experiment, and `TrackEvent` records the conversions you measure. Events are batched, de-duplicated, capped at the API's 2 MiB batch limit, saved to disk when the app is paused and retried after network failures.
 - Offline support: The last good response is cached on disk. Without a network the game starts with cached flags, and without a cache it uses your defaults.
 - An Editor window (Window > Flagsmith) that lists an environment's flags and lets you toggle them and edit their values through the Management API.
-- WebGL support: Everything runs on Unity's main thread with `UnityWebRequest`. No threads, no `Task.Delay`, no native plugins.
+- WebGL support: everything runs on Unity's main thread with `UnityWebRequest`, without background threads, `Task.Delay` or native plugins.
 - Flagsmith Cloud and self-hosted Flagsmith.
 
 ## Install
@@ -168,7 +168,7 @@ The full guide and API reference are in [Documentation~/index.md](com.flagsmith.
 
 | Platform | Status |
 |---|---|
-| Unity Editor (macOS) | Tested: 19 automated tests, including one against a live self-hosted server (Flagsmith 2.295.2, pinned in `server/docker-compose.yml`) |
+| Unity Editor (macOS) | Tested: 26 automated tests, including one against a live self-hosted server (Flagsmith 2.295.2, pinned in `server/docker-compose.yml`) |
 | WebGL | Tested: Flag Runner build in Chrome, Live Tuning and experiment events confirmed in Flagsmith |
 | Android | IL2CPP ARM64 release build fetched its flags from the self-hosted server on an Android 16 emulator. Not yet tried on a physical phone |
 | iOS, Windows, macOS, Linux players | Uses only `UnityWebRequest` and main-thread code, but not yet tested |

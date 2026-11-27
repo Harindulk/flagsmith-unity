@@ -6,7 +6,7 @@ Version 0.1.0.
 - [Setup](#setup)
 - [Reading flags](#reading-flags)
 - [Identities and traits](#identities-and-traits)
-- [Live Tuning](#live-tuning)
+- [Live tuning](#live-tuning)
 - [Experimentation](#experimentation)
 - [Offline behaviour](#offline-behaviour)
 - [The Editor window](#the-editor-window)
@@ -137,7 +137,7 @@ flagsmith.Traits["payer"] = true;
 await flagsmith.Refresh();   // optional: apply now instead of waiting for the next refresh
 ```
 
-## Live Tuning
+## Live tuning
 
 Set Refresh Seconds to 1 or 2, enter Play mode (or run a development build on a phone), and change values in the dashboard or in Window > Flagsmith. The game picks them up within one refresh. Bound fields update, and `FlagsChanged` fires.
 
@@ -165,7 +165,7 @@ flagsmith.TrackEvent("first_run_complete", distance, new Dictionary<string, obje
 Details that matter for clean results:
 
 - Call `GetExperimentFlag` at the moment of exposure, not at startup. A player who never opens the shop shouldn't count as exposed to the shop experiment.
-- Calling it again in the same batch is harmless. Duplicate exposures (same flag, identity, variant and experiment) are dropped.
+- Calling it again is harmless. A duplicate exposure (same flag, identity, variant and experiment) is dropped until the first one has been delivered.
 - No exposure is recorded when the flag is off, the identity isn't enrolled, or there is no running experiment on the flag.
 - Event names starting with `$` are reserved, and `TrackEvent` throws for them.
 - `value` is sent as text (numbers with the invariant culture). `metadata` is any JSON-serialisable dictionary. The client adds `sdk_version`.
