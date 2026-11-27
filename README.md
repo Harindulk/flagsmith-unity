@@ -18,7 +18,7 @@ void OnTutorialShown() => flagsmith.GetExperimentFlag("tutorial_style");    // r
 void OnLevelOneCleared() => flagsmith.TrackEvent("first_run_complete");     // the metric the experiment measures
 ```
 
-Why it exists: Flagsmith has no Unity SDK ([issue #3623](https://github.com/Flagsmith/flagsmith/issues/3623), open since March 2024), while Firebase Remote Config, Statsig, ConfigCat and Unity's own Remote Config all support Unity. Flagsmith's .NET SDK runs its polling and event flushing on `System.Threading.Timer`, `Task.Run` and `Task.Delay`, which don't work in Unity WebGL builds. This package is written for Unity from the start and also speaks Flagsmith's new Experimentation API.
+Why it exists: Flagsmith has no Unity SDK. [Its FAQ](https://docs.flagsmith.com/support/faq/sdks-implementation) points Unity developers to the .NET SDK, which runs its polling and event flushing on `System.Threading.Timer`, `Task.Run` and `Task.Delay`, and those don't work in Unity WebGL builds. The Flagsmith team's own "Unity SDK" issue ([#3623](https://github.com/Flagsmith/flagsmith/issues/3623), March 2024) was closed as not planned in November 2026. Firebase Remote Config, Statsig, ConfigCat and Unity's own Remote Config all support Unity. This package is written for Unity from the start and also speaks Flagsmith's new Experimentation API.
 
 Community package, MIT licensed. It is not an official Flagsmith SDK.
 
