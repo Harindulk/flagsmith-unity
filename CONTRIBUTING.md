@@ -26,6 +26,13 @@ unity test Sample --mode EditMode --output test-results.xml
 
 `LiveServerTests` talks to the local server and is skipped when `server/.seed.json` is missing. Everything else uses a fake transport and needs no network.
 
+The skill script, the site build and the server helper have their own tests, which also run on every push and pull request:
+
+```sh
+python3 -m pip install markdown==3.7
+python3 -m unittest discover tests -v
+```
+
 ## Guidelines
 
 - Keep the runtime free of threads, `Task.Delay` and native code so it keeps working on WebGL.
