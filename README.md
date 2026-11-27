@@ -62,6 +62,8 @@ Or add it to `Packages/manifest.json`:
 "com.flagsmith.unity": "https://github.com/Harindulk/flagsmith-unity.git?path=/com.flagsmith.unity"
 ```
 
+Add `#v0.1.0` to the end of the URL to stay on a fixed release. Releases are listed on the [releases page](https://github.com/Harindulk/flagsmith-unity/releases).
+
 The package depends on `com.unity.nuget.newtonsoft-json`, which Unity installs for you.
 
 ## Quick start
