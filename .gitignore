@@ -28,6 +28,7 @@ Sample/Assets/Resources/flagsmith.json.meta
 __pycache__/
 *.pyc
 Sample/.utmp/
+Sample/Data/
 .taste-skill/
 _site/
 
