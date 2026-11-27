@@ -101,7 +101,7 @@ namespace Flagsmith.Editor
                 rows = states.Where(s => features.ContainsKey((int)s["feature"])).Select(s =>
                 {
                     var f = features[(int)s["feature"]];
-                    var value = Flag.AsText(s["feature_state_value"]);
+                    var value = Flag.AsText(s["feature_state_value"]) ?? ""; // the text field returns "" for null, which would mark the row dirty
                     var enabled = (bool)s["enabled"];
                     return new Row
                     {
@@ -120,7 +120,7 @@ namespace Flagsmith.Editor
             row.Saving = true;
             try
             {
-                var body = new JObject { ["enabled"] = row.Enabled, ["feature_state_value"] = row.Value };
+                var body = new JObject { ["enabled"] = row.Enabled, ["feature_state_value"] = row.Value == "" ? null : row.Value };
                 await Call("PATCH", $"environments/{environmentKey}/featurestates/{row.StateId}/", body.ToString(Formatting.None));
                 row.SavedEnabled = row.Enabled;
                 row.SavedValue = row.Value;

@@ -1,7 +1,8 @@
 # Flagsmith for Unity: guide and API reference
 
-Version 0.1.0. For installation and a short overview, see the [README](../../README.md).
+Version 0.1.0.
 
+- [Getting started](#getting-started)
 - [Setup](#setup)
 - [Reading flags](#reading-flags)
 - [Identities and traits](#identities-and-traits)
@@ -13,6 +14,56 @@ Version 0.1.0. For installation and a short overview, see the [README](../../REA
 - [Security](#security)
 - [API reference](#api-reference)
 - [Troubleshooting](#troubleshooting)
+- [Run the demo](#run-the-demo)
+
+## Getting started
+
+Flagsmith for Unity connects Unity games to [Flagsmith](https://flagsmith.com), the open-source feature flag service. A game reads its tuning, switches and experiment variants from Flagsmith at runtime, so you can change them without a new build. It works with Flagsmith Cloud and self-hosted Flagsmith, and everything runs on Unity's main thread, so WebGL builds work too.
+
+![Flag Runner changing live while flags are edited in self-hosted Flagsmith](../../docs/media/live-tuning.gif)
+
+*The sample game, Flag Runner, while `server/demo.py` edits its flags. Nothing is rebuilt or restarted.*
+
+### Install
+
+Unity 6 (6000.0) or newer. In **Window > Package Manager > + > Install package from git URL**, paste:
+
+```
+https://github.com/Harindulk/flagsmith-unity.git?path=/com.flagsmith.unity
+```
+
+Or add it to `Packages/manifest.json`:
+
+```json
+"com.flagsmith.unity": "https://github.com/Harindulk/flagsmith-unity.git?path=/com.flagsmith.unity"
+```
+
+Unity also installs `com.unity.nuget.newtonsoft-json`, which the package depends on.
+
+### Five minutes to your first flag
+
+1. In Flagsmith, create a flag called `run_speed` with the value `7`.
+2. Open your environment's **SDK keys** page and copy the **client-side** environment key.
+3. Add a `FlagsmithBehaviour` component to a GameObject in your first scene and paste the key. Leave the API URL as it is for Flagsmith Cloud, or set it to `http://your-host:8000/api/v1/` for self-hosted.
+4. Bind a field to the flag:
+
+```csharp
+using Flagsmith;
+using UnityEngine;
+
+public class Player : MonoBehaviour
+{
+    [SerializeField] FlagsmithBehaviour flagsmith;
+
+    [FlagsmithValue("run_speed")] float runSpeed = 7f;   // 7 until the first fetch, and offline
+
+    void Awake() => flagsmith.Bind(this);
+}
+```
+
+5. Press Play, change `run_speed` in Flagsmith, and the field follows on the next refresh.
+
+Package Manager also has a **Quickstart** sample: select the package, then **Samples > Import**.
 
 ## Setup
 
@@ -91,6 +142,10 @@ Set Refresh Seconds to 1 or 2, enter Play mode (or run a development build on a 
 
 Every refresh is one request per player, so set Refresh Seconds back to 60 or more before release.
 
+![Flag Runner showing the caption gravity_scale 3.2 to 1.6, changed in Flagsmith, no rebuild](../../docs/media/flag-runner.png)
+
+*Flag Runner shows each change as it arrives. The panel on the right lists the live values and where they came from.*
+
 ## Experimentation
 
 Flagsmith Experimentation compares the variants of a multivariate flag against a metric built from events your game sends. The flow:
@@ -113,6 +168,12 @@ Details that matter for clean results:
 - No exposure is recorded when the flag is off, the identity isn't enrolled, or there is no running experiment on the flag.
 - Event names starting with `$` are reserved, and `TrackEvent` throws for them.
 - `value` is sent as text (numbers with the invariant culture). `metadata` is any JSON-serialisable dictionary. The client adds `sdk_version`.
+
+After enough players, the experiment's page in Flagsmith shows the result:
+
+![Flagsmith experiment results: the hand variant 15.3 percent ahead of text, 95 percent chance to be best](../../docs/media/experiment-results.png)
+
+*Self-hosted Flagsmith after `server/simulate.py` sent 400 synthetic players through the demo experiment. The lift is simulated on purpose to show the page working; it says nothing about real players.*
 
 ### Delivery
 
@@ -138,6 +199,8 @@ A response that isn't a flags payload counts as a failure and is never cached: a
 ## The Editor window
 
 Window > Flagsmith lists the flags of one environment and lets you change them.
+
+![The Flagsmith window in the Unity Editor listing eight flags, with run_speed edited and its Save button active](../../docs/media/editor-window.png)
 
 | Field | What to enter |
 |---|---|
@@ -222,3 +285,30 @@ For tests, pass your own `ITransport` (see `FakeTransport` in the package tests)
 | Values change in the dashboard but not in the game | Refresh Seconds is 0 or large, or you're editing a different environment |
 | Editor window: 401 or 403 | The admin token is wrong, or it's a user token used with the `Api-Key` scheme. Organisation keys contain a dot; user tokens don't |
 | WebGL: requests blocked | The server must allow CORS for the game's origin and the `X-Environment-Key` header. Flagsmith Cloud and the default self-hosted image do |
+
+## Run the demo
+
+The repository has a self-hosted Flagsmith setup with Experimentation turned on, a seed script and the sample game, Flag Runner, which uses every feature in this guide. You need Docker, Python 3 and Unity 6000.6.
+
+```sh
+cd server
+docker compose up -d          # Flagsmith on http://localhost:8000 (the first start takes a minute)
+python3 seed.py               # project, 8 flags, a metric and a running 50/50 experiment
+```
+
+`seed.py` prints the dashboard login and writes the connection details the sample needs into `Sample/Assets/Resources/flagsmith.json`, which git ignores. Open `Sample/` in Unity and press Play.
+
+![The Flagsmith dashboard listing Flag Runner's eight flags](../../docs/media/dash-features.png)
+
+To record or present it hands-free, press **A** in the game so it plays itself, then run `python3 demo.py`. It changes speed, colour, gravity, the spike walls and coin value on a timeline, then puts everything back.
+
+| Command | Does |
+|---|---|
+| `python3 flag.py` | Lists every flag and its value |
+| `python3 flag.py run_speed 12` | Sets a value (`on` / `off` toggles a flag) |
+| `python3 demo.py` | Runs the scripted live-tuning timeline |
+| `python3 simulate.py 400` | Sends 400 synthetic players through the tutorial experiment and refreshes its results |
+
+> This setup is for local demos only. It uses the default secrets from Flagsmith's compose file, allows any host, and `seed.py` creates an admin with a fixed password. For a real deployment, follow [Flagsmith's self-hosting guide](https://docs.flagsmith.com/deployment-self-hosting).
+
+You can also play Flag Runner in the browser on the [project site](../../README.md), where the page itself answers the game's Flagsmith requests.

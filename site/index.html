@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flagsmith for Unity</title>
+<meta name="description" content="Open-source Unity package for Flagsmith: feature flags, live tuning and A/B tests for Unity games, including WebGL. Play the demo in your browser.">
+<meta property="og:title" content="Flagsmith for Unity">
+<meta property="og:description" content="Feature flags, live tuning and A/B tests for Unity games, on Flagsmith. Works in WebGL.">
+<meta property="og:image" content="media/flag-runner.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%23141721'/%3E%3Crect x='9' y='9' width='14' height='14' rx='2' fill='%23ffb020' transform='rotate(12 16 16)'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Albert+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/site.css">
+<script>document.documentElement.classList.add('js')</script>
+</head>
+<body>
+
+<header class="bar">
+  <a class="mark" href="./" aria-label="Flagsmith for Unity, home">
+    <svg viewBox="0 0 32 32" aria-hidden="true"><rect width="32" height="32" rx="6" fill="#141721"/><rect x="9" y="9" width="14" height="14" rx="2" fill="#ffb020" transform="rotate(12 16 16)"/></svg>
+    Flagsmith for Unity
+  </a>
+  <nav aria-label="Main">
+    <a href="docs/">Docs</a>
+    <a class="hide-s" href="#play">Playground</a>
+    <a class="hide-s" href="docs/api-reference.html">API</a>
+    <a href="https://github.com/Harindulk/flagsmith-unity">GitHub</a>
+  </nav>
+</header>
+
+<main>
+<section class="hero" aria-labelledby="title">
+  <div class="hero-head">
+    <h1 id="title"><span class="line"><span>Change the game,</span></span><span class="line"><span>not the build.</span></span></h1>
+    <div class="hero-side">
+      <p>Flagsmith for Unity is an open-source package that brings Flagsmith's feature flags, live tuning and A/B tests to Unity games, WebGL included.</p>
+      <div class="acts">
+        <a class="btn" href="docs/">Read the docs</a>
+        <a class="link" href="#install">Install from git</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="play" id="play">
+    <div class="play-game">
+      <div class="start" id="start">
+        <button class="btn" type="button" id="load-game">Play Flag Runner</button>
+        <p>Unity WebGL build, 16 MB. It plays itself; Space or tap to jump.</p>
+      </div>
+    </div>
+
+    <div class="panel" data-ui aria-label="Flags for this game">
+      <h2>Flags <span>Development</span></h2>
+      <div class="row" data-flag="run_speed"><label for="f-run">run_speed</label><output id="o-run" for="f-run">7</output>
+        <input type="range" id="f-run" min="4" max="14" step="1" value="7"></div>
+      <div class="row" data-flag="gravity_scale"><label for="f-grav">gravity_scale</label><output id="o-grav" for="f-grav">3.2</output>
+        <input type="range" id="f-grav" min="1" max="5" step="0.2" value="3.2"></div>
+      <div class="row" data-flag="player_color"><span class="name" id="l-color">player_color</span>
+        <div class="swatches" role="group" aria-labelledby="l-color">
+          <button type="button" data-color="#FFB020" style="background:#FFB020" aria-pressed="true" aria-label="Amber"></button>
+          <button type="button" data-color="#4DD0E1" style="background:#4DD0E1" aria-pressed="false" aria-label="Cyan"></button>
+          <button type="button" data-color="#FF6B9A" style="background:#FF6B9A" aria-pressed="false" aria-label="Pink"></button>
+          <button type="button" data-color="#9BE15D" style="background:#9BE15D" aria-pressed="false" aria-label="Green"></button>
+        </div></div>
+      <div class="row" data-flag="coin_value"><span class="name" id="l-coin">coin_value</span>
+        <div class="seg" role="group" aria-labelledby="l-coin">
+          <button type="button" data-coin="1" aria-pressed="true">1</button><button type="button" data-coin="5" aria-pressed="false">5</button><button type="button" data-coin="10" aria-pressed="false">10</button>
+        </div></div>
+      <div class="row" data-flag="double_jump"><span class="name" id="l-dj">double_jump</span>
+        <button class="switch" type="button" role="switch" aria-checked="false" aria-labelledby="l-dj" data-switch="double_jump"></button></div>
+      <div class="row" data-flag="spike_walls"><span class="name" id="l-sw">spike_walls</span>
+        <button class="switch" type="button" role="switch" aria-checked="true" aria-labelledby="l-sw" data-switch="spike_walls"></button></div>
+      <div class="feed" aria-live="polite">
+        <h3>Events from the game</h3>
+        <ul id="feed"><li><span>Nothing yet. Start the game.</span></li></ul>
+      </div>
+    </div>
+
+    <p class="play-note"><span>This is the real package running in WebGL. The page stands in for the Flagsmith server: change a flag and the game picks it up on its next 2-second refresh.</span> <b id="polls">0 requests answered</b></p>
+  </div>
+</section>
+
+<section class="wrap gapped" aria-labelledby="why-h">
+  <div class="why reveal">
+    <div class="why-text">
+      <h2 id="why-h">Flagsmith has no Unity SDK.</h2>
+      <p class="first">Its FAQ points Unity developers to the .NET SDK. That SDK polls and sends events with <code>System.Threading.Timer</code>, <code>Task.Run</code> and <code>Task.Delay</code>, and none of those run in a WebGL build.</p>
+      <p>The Flagsmith team's own "Unity SDK" issue, opened in March 2024, was closed as not planned in November 2026. Firebase Remote Config, Statsig, ConfigCat and Unity's Remote Config all support Unity.</p>
+      <p>This package fills the gap. It runs on Unity's main thread with <code>UnityWebRequest</code>, caches the last good flags on disk, and speaks Flagsmith's new Experimentation API. <a href="https://github.com/Flagsmith/flagsmith/issues/3623">Issue #3623</a> · <a href="https://docs.flagsmith.com/support/faq/sdks-implementation">the FAQ</a></p>
+    </div>
+    <figure class="why-media">
+      <video src="media/live-tuning.mp4" poster="media/flag-runner.png" autoplay muted loop playsinline width="960" height="580" aria-label="Flag Runner changing live while a script edits flags in self-hosted Flagsmith"></video>
+      <figcaption>Flag Runner on self-hosted Flagsmith 2.295.2 while <code>server/demo.py</code> edits flags. Speed, colour, gravity and the spike walls all change mid-run.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="kill gapped" id="kill" aria-labelledby="kill-h">
+  <h2 id="kill-h">Kill switch: <span id="kill-word">on</span></h2>
+  <p>Spike walls broken in production? Turn the flag off and every running copy of the game drops them on its next refresh.</p>
+  <p class="k-sub">No patch, no store review. This switch drives the playground above too.</p>
+  <div class="big-switch" data-ui>
+    <span class="lbl">spike_walls <span id="kill-state">enabled</span></span>
+    <button type="button" role="switch" aria-checked="true" aria-label="spike_walls" data-switch="spike_walls"></button>
+  </div>
+</section>
+
+<section class="stages gapped" aria-label="How a flag change reaches a running game">
+  <div class="left">
+    <h2 id="st-h">Someone edits a flag</h2>
+    <p id="st-p">In the Flagsmith dashboard, or in Window &gt; Flagsmith inside Unity, run_speed goes from 7 to 11.</p>
+  </div>
+  <div class="right">
+    <div class="frag" data-stage="0" data-ui><img src="media/dash-features.png" width="1440" height="900" alt="Flagsmith dashboard listing Flag Runner's eight flags with their values" loading="lazy"></div>
+    <div class="frag" data-stage="1" data-ui hidden><pre><code><span class="tok-c">// every 2 s while tuning, every 60 s in release</span>
+<span class="tok-k">POST</span> /api/v1/identities/
+X-Environment-Key: <span class="tok-s">client key</span>
+
+{ <span class="tok-s">"feature"</span>: { <span class="tok-s">"name"</span>: <span class="tok-s">"run_speed"</span> },
+  <span class="tok-s">"enabled"</span>: <span class="tok-k">true</span>,
+  <span class="tok-s">"feature_state_value"</span>: <span class="tok-s">"11"</span> }</code></pre></div>
+    <div class="frag" data-stage="2" data-ui hidden><pre><code>[<span class="tok-t">FlagsmithValue</span>(<span class="tok-s">"run_speed"</span>)]
+<span class="tok-k">float</span> runSpeed = 7f;   <span class="tok-c">// now 11</span>
+
+<span class="tok-k">void</span> Start() =&gt; flagsmith.Bind(<span class="tok-k">this</span>);
+
+flagsmith.FlagsChanged += flags =&gt;
+    ShowCaption(<span class="tok-s">"run_speed 7 -&gt; 11"</span>);</code></pre></div>
+    <div class="frag" data-stage="3" data-ui hidden><img src="media/flag-runner.png" width="960" height="580" alt="Flag Runner with the caption: gravity_scale 3.2 to 1.6, changed in Flagsmith, no rebuild" loading="lazy"></div>
+  </div>
+  <div class="stages-track-bg" aria-hidden="true"></div>
+  <div class="track">
+    <label class="sr" for="stage">Stage</label>
+    <input type="range" id="stage" min="0" max="3" step="1" value="0" aria-valuetext="Someone edits a flag">
+    <ol id="stage-names"><li class="on">Edit</li><li>Refresh</li><li>Bind</li><li>Play</li></ol>
+  </div>
+</section>
+
+<section class="wrap gapped" aria-labelledby="ab-h">
+  <div class="split reveal">
+    <div class="txt">
+      <h2 class="h2" id="ab-h">A/B test it on half the players</h2>
+      <p>Call <code>GetExperimentFlag</code> at the moment a player sees the thing under test, and <code>TrackEvent</code> when they succeed. Flagsmith Experimentation does the statistics.</p>
+<pre><code><span class="tok-k">var</span> tut = flagsmith.GetExperimentFlag(<span class="tok-s">"tutorial_style"</span>);
+ShowTutorial(tut?.Value ?? <span class="tok-s">"text"</span>);
+<span class="tok-c">// later</span>
+flagsmith.TrackEvent(<span class="tok-s">"first_run_complete"</span>);</code></pre>
+      <p>Exposures are recorded only for enrolled players and only once per batch. Events are batched under the 2 MiB limit, saved to disk when the app pauses and retried after network errors.</p>
+    </div>
+    <figure class="fig framed">
+      <img src="media/experiment-results.png" width="1400" height="760" alt="Flagsmith experiment results: the hand variant is 15.3 percent ahead of text with a 95 percent chance to be best" loading="lazy">
+      <figcaption>Self-hosted Flagsmith after 400 synthetic players from <code>server/simulate.py</code>. The lift is simulated on purpose to show the results page. It is not evidence about real players.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="wrap gapped" aria-labelledby="ed-h">
+  <div class="split flip reveal">
+    <div class="txt">
+      <h2 class="h2" id="ed-h">Tune it without leaving Unity</h2>
+      <p>Window &gt; Flagsmith lists an environment's flags. Flip a toggle or edit a value, press Save, and the game in Play mode picks it up on its next refresh.</p>
+      <p>The admin token lives in EditorPrefs on your machine, so it never ends up in the project or in version control.</p>
+      <p><a class="link" href="docs/the-editor-window.html">Editor window guide</a></p>
+    </div>
+    <figure class="fig framed">
+      <img src="media/editor-window.png" width="1040" height="820" alt="The Flagsmith window in the Unity Editor listing eight flags, with run_speed edited to 11 and its Save button active" loading="lazy">
+      <figcaption>Window &gt; Flagsmith connected to self-hosted Flagsmith, run_speed edited and ready to save.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section class="wrap gapped" aria-labelledby="proof-h">
+  <div class="tiles reveal">
+    <div class="tile head"><h2 id="proof-h">What has been checked</h2><p>Every claim on this page was tested against self-hosted Flagsmith 2.295.2. Where something is untested, the docs say so.</p></div>
+    <div class="tile"><b>18 tests</b><span>Edit mode, one of them against a live self-hosted server</span></div>
+    <div class="tile"><b>WebGL</b><span>Tested in Chrome: live tuning and experiment events confirmed</span></div>
+    <div class="tile"><b>No threads</b><span>Main thread, <code>UnityWebRequest</code> and <code>Awaitable</code>. No native plugins</span></div>
+    <div class="tile"><b>Offline</b><span>Last good flags cached on disk. Proxy error pages are never cached</span></div>
+    <div class="tile"><b>Client keys only</b><span>Server-side keys are refused, so no secret ships in a build</span></div>
+    <div class="tile"><b>Android</b><span>IL2CPP ARM64 build fetched its flags on an emulator. Phone test pending</span></div>
+  </div>
+</section>
+
+<section class="wrap gapped" aria-labelledby="start-h">
+  <div class="start-head reveal">
+    <h2 id="start-h"><span class="soft">Five steps</span>from install to A/B test</h2>
+    <a class="btn ink" href="docs/">Full guide</a>
+  </div>
+  <div class="tabs">
+    <div class="tablist" role="tablist" aria-label="Getting started">
+      <button role="tab" id="t-install" aria-controls="p-install" aria-selected="true">Install<small>2 minutes</small></button>
+      <button role="tab" id="t-read" aria-controls="p-read" aria-selected="false" tabindex="-1">Read flags<small>One component</small></button>
+      <button role="tab" id="t-live" aria-controls="p-live" aria-selected="false" tabindex="-1">Live tuning<small>No rebuilds</small></button>
+      <button role="tab" id="t-ab" aria-controls="p-ab" aria-selected="false" tabindex="-1">Experiment<small>Two calls</small></button>
+      <button role="tab" id="t-self" aria-controls="p-self" aria-selected="false" tabindex="-1">Self-host<small>Two commands</small></button>
+    </div>
+    <div class="bands" role="tabpanel" id="p-install" aria-labelledby="t-install">
+      <div class="band"><div><h3>Add the package</h3><p>Package Manager &gt; + &gt; Install package from git URL. Unity 6 or newer.</p></div><pre><code>https://github.com/Harindulk/flagsmith-unity.git?path=/com.flagsmith.unity</code></pre></div>
+      <div class="band"><div><h3>Copy your client key</h3><p>Flagsmith &gt; your environment &gt; SDK keys. Never a <code>ser.</code> key.</p></div><pre><code>Environment Key: <span class="tok-s">your-client-key</span></code></pre></div>
+      <div class="band"><div><h3>Add the component</h3><p>On a GameObject in your first scene. Paste the key; leave the API URL for Flagsmith Cloud.</p></div><pre><code>Add Component &gt; <span class="tok-t">FlagsmithBehaviour</span></code></pre></div>
+    </div>
+    <div class="bands" role="tabpanel" id="p-read" aria-labelledby="t-read" hidden>
+      <div class="band"><div><h3>Bind fields to flags</h3><p>A bool follows the flag's on/off state. Your initialiser is the offline default.</p></div><pre><code>[<span class="tok-t">FlagsmithValue</span>(<span class="tok-s">"run_speed"</span>)] <span class="tok-k">float</span> runSpeed = 7f;
+[<span class="tok-t">FlagsmithValue</span>(<span class="tok-s">"double_jump"</span>)] <span class="tok-k">bool</span> doubleJump;
+<span class="tok-k">void</span> Awake() =&gt; flagsmith.Bind(<span class="tok-k">this</span>);</code></pre></div>
+      <div class="band"><div><h3>Or read them directly</h3><p>Typed, culture-safe, with a fallback for every read.</p></div><pre><code><span class="tok-k">float</span> s = flagsmith.Flags.GetValue(<span class="tok-s">"run_speed"</span>, 7f);
+<span class="tok-k">bool</span> on = flagsmith.Flags.IsEnabled(<span class="tok-s">"new_shop"</span>);</code></pre></div>
+      <div class="band"><div><h3>Add traits for segments</h3><p>Sent with the next refresh, so segments and overrides work per player.</p></div><pre><code>flagsmith.Traits[<span class="tok-s">"level"</span>] = 12;</code></pre></div>
+    </div>
+    <div class="bands" role="tabpanel" id="p-live" aria-labelledby="t-live" hidden>
+      <div class="band"><div><h3>Refresh every second or two</h3><p>Set Refresh Seconds on the component while you tune.</p></div><pre><code>Refresh Seconds: <span class="tok-s">2</span></code></pre></div>
+      <div class="band"><div><h3>React to changes</h3><p>Runs on the main thread, only when something actually changed.</p></div><pre><code>flagsmith.FlagsChanged += f =&gt; ui.Refresh(f);</code></pre></div>
+      <div class="band"><div><h3>Ship with 60 seconds</h3><p>Every refresh is one request per player.</p></div><pre><code>Refresh Seconds: <span class="tok-s">60</span></code></pre></div>
+    </div>
+    <div class="bands" role="tabpanel" id="p-ab" aria-labelledby="t-ab" hidden>
+      <div class="band"><div><h3>Create the experiment</h3><p>A multivariate flag, a metric on an event, and an experiment that uses both.</p></div><pre><code>tutorial_style: <span class="tok-s">text</span> | <span class="tok-s">hand</span></code></pre></div>
+      <div class="band"><div><h3>Record the exposure</h3><p>When the player actually sees the variant, not at startup.</p></div><pre><code>flagsmith.GetExperimentFlag(<span class="tok-s">"tutorial_style"</span>);</code></pre></div>
+      <div class="band"><div><h3>Record the outcome</h3><p>Batched, saved on pause, retried after errors.</p></div><pre><code>flagsmith.TrackEvent(<span class="tok-s">"first_run_complete"</span>);</code></pre></div>
+    </div>
+    <div class="bands" role="tabpanel" id="p-self" aria-labelledby="t-self" hidden>
+      <div class="band"><div><h3>Start Flagsmith</h3><p>Self-hosted 2.295.2 with Experimentation on. Local demo settings only.</p></div><pre><code>cd server &amp;&amp; docker compose up -d</code></pre></div>
+      <div class="band"><div><h3>Seed the demo</h3><p>Project, eight flags, a metric and a running 50/50 experiment.</p></div><pre><code>python3 seed.py</code></pre></div>
+      <div class="band"><div><h3>Play and tune</h3><p>Open Sample/ in Unity, press Play, then run the scripted demo.</p></div><pre><code>python3 demo.py</code></pre></div>
+    </div>
+  </div>
+</section>
+
+<section class="wrap gapped" id="install" aria-labelledby="inst-h">
+  <div class="cta reveal">
+    <h2 class="sentence" id="inst-h">Add it to your Unity project with one URL.</h2>
+    <div class="fill">
+      <label class="sr" for="git-url">Git URL</label>
+      <input id="git-url" readonly value="https://github.com/Harindulk/flagsmith-unity.git?path=/com.flagsmith.unity">
+      <button class="btn" type="button" id="copy-url">Copy</button>
+    </div>
+    <p class="note">Paste it into Package Manager &gt; + &gt; Install package from git URL. Newtonsoft JSON comes with it.</p>
+  </div>
+</section>
+</main>
+
+<footer class="foot">
+  <div class="stmt"><p>A community package for Flagsmith, MIT licensed. Not an official Flagsmith SDK.</p><small>Made for Flagsmith Toggle Wars, November 2026.</small></div>
+  <div class="nav"><b>Docs</b><ul><li><a href="docs/">Guide</a></li><li><a href="docs/api-reference.html">API reference</a></li><li><a href="docs/troubleshooting.html">Troubleshooting</a></li><li><a href="https://github.com/Harindulk/flagsmith-unity/blob/main/com.flagsmith.unity/CHANGELOG.md">Changelog</a></li></ul></div>
+  <div class="made"><b>Version</b><p>0.1.0<br><small>Unity 6000.0+</small></p></div>
+  <div class="repo"><b>Source and issues</b><a href="https://github.com/Harindulk/flagsmith-unity">github.com/Harindulk/flagsmith-unity</a></div>
+  <div class="word"><span>Flagsmith for Unity</span></div>
+  <a class="go" href="docs/"><b>Read the docs</b><svg viewBox="0 0 64 64" aria-hidden="true"><path d="M14 50 50 14M22 14h28v28" fill="none" stroke="currentColor" stroke-width="4"/></svg></a>
+</footer>
+
+<script src="assets/site.js"></script>
+</body>
+</html>

@@ -21,7 +21,7 @@ namespace Flagsmith
 
         internal static Flag FromJson(JToken t)
         {
-            var experiment = t["metadata"]?["experiment"];
+            var experiment = t["metadata"] is JObject meta ? meta["experiment"] : null; // "metadata" may be null or missing
             return new Flag
             {
                 Name = (string)t["feature"]?["name"],

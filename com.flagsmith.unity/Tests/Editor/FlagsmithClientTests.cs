@@ -76,6 +76,16 @@ namespace Flagsmith.Tests
         }
 
         [Test]
+        public async Task NullMetadata_StillParses()
+        {
+            transport.Responses.Enqueue(Ok(@"[{""feature"":{""name"":""a""},""enabled"":true,""feature_state_value"":""x"",""metadata"":null}]"));
+            var flags = await client.GetEnvironmentFlags();
+            Assert.AreEqual(FlagSource.Server, flags.Source);
+            Assert.AreEqual("x", flags.GetValue("a", ""));
+            Assert.IsFalse(flags.Get("a").InExperiment);
+        }
+
+        [Test]
         public async Task EnvironmentFlags_UseGetOnFlagsEndpoint()
         {
             transport.Responses.Enqueue(Ok(@"[{""feature"":{""name"":""a""},""enabled"":true,""feature_state_value"":""x""}]"));

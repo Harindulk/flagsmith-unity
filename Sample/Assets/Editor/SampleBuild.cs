@@ -13,6 +13,41 @@ public static class SampleBuild
     }
 
     /// <summary>
+    /// The docs site's playground: same game, pointed at a host that doesn't exist. The page answers the game's
+    /// Flagsmith requests itself from its own controls, so the hosted demo needs no server.
+    /// </summary>
+    public static void Playground()
+    {
+        PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Gzip;
+        PlayerSettings.WebGL.decompressionFallback = true; // GitHub Pages can't send Content-Encoding for .gz files
+        PlayerSettings.runInBackground = true; // visitors click the page's flag controls, which takes focus from the game
+        try { WithConnection("https://playground.invalid/api/v1/", "playground", () => Build(BuildTarget.WebGL, "Builds/Playground")); }
+        finally
+        {
+            PlayerSettings.WebGL.compressionFormat = WebGLCompressionFormat.Disabled;
+            PlayerSettings.WebGL.decompressionFallback = false;
+            PlayerSettings.runInBackground = false;
+        }
+    }
+
+    static void WithConnection(string url, string key, Action build)
+    {
+        const string config = "Assets/Resources/flagsmith.json";
+        var original = System.IO.File.Exists(config) ? System.IO.File.ReadAllText(config) : null;
+        try
+        {
+            System.IO.File.WriteAllText(config, UnityEngine.JsonUtility.ToJson(new Connection { api_url = url, environment_key = key }, true));
+            AssetDatabase.ImportAsset(config);
+            build();
+        }
+        finally
+        {
+            if (original == null) System.IO.File.Delete(config); else System.IO.File.WriteAllText(config, original);
+            AssetDatabase.Refresh();
+        }
+    }
+
+    /// <summary>
     /// Phone builds can't reach "localhost": set FLAGSMITH_API_URL (e.g. http://192.168.1.20:8000/api/v1/) to the
     /// Mac's LAN address and it is baked into this build only. Plain HTTP is allowed because the demo server has no TLS.
     /// </summary>
