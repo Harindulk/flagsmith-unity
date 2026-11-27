@@ -30,3 +30,6 @@ __pycache__/
 Sample/.utmp/
 .taste-skill/
 _site/
+
+# The docs site ships its prebuilt WebGL playground
+!site/play/Build/
