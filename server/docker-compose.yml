@@ -78,7 +78,7 @@ services:
     environment:
       <<: *flagsmith-env
     ports:
-      - 8000:8000
+      - ${FLAGSMITH_BIND:-127.0.0.1}:8000:8000  # local only by default (default secrets); FLAGSMITH_BIND=0.0.0.0 for a phone on your Wi-Fi
     depends_on:
       migrate-db:
         condition: service_completed_successfully
@@ -91,7 +91,7 @@ services:
     environment:
       <<: *flagsmith-env
     ports:
-      - 8001:8000
+      - ${FLAGSMITH_BIND:-127.0.0.1}:8001:8000
     depends_on:
       migrate-db:
         condition: service_completed_successfully

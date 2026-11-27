@@ -31,7 +31,9 @@ Add this line to `dependencies` in `Packages/manifest.json` (keep the JSON valid
 
 ## 4. Add the bootstrap
 
-Create `Assets/Flagsmith/FlagsmithBootstrap.cs`. Put in the client key from `flagsmith.json` (`environment`). For self-hosted, also set `ApiUrl` to `<FLAGSMITH_API_URL>/api/v1/`; for Cloud, leave `ApiUrl` out.
+Check for assembly definitions first: `find Assets -name '*.asmdef'`. If the gameplay scripts live in one, put the bootstrap in that assembly's folder and add `"Flagsmith.Runtime"` to its `references`; otherwise use `Assets/Flagsmith/`.
+
+Create `FlagsmithBootstrap.cs`. Put in the client key from `flagsmith.json` (`environment`). For self-hosted, also set `ApiUrl` to `<FLAGSMITH_API_URL>/api/v1/`; for Cloud, leave `ApiUrl` out.
 
 ```csharp
 using Flagsmith;
@@ -61,7 +63,7 @@ Find gameplay numbers and switches:
 grep -rnE --include='*.cs' '^\s*(\[[^]]*\]\s*)*((public|private|protected|internal) )?(float|int|bool) \w+ = [^;(]+;' Assets
 ```
 
-Skip anything in `Packages/`, `Editor/` or third-party folders. Propose at most five, with a snake_case flag name and the current value as the default, and let the user choose. Good picks: speeds, jump or gravity values, prices and rewards, spawn rates, and a bool for any feature that might need a kill switch.
+For `[SerializeField]` and public fields the real value may be set in the Inspector, so check scenes and prefabs too (`grep -rn "  moveSpeed:" Assets --include='*.unity' --include='*.prefab'`) and use that value as the flag's default. Skip anything in `Packages/`, `Editor/` or third-party folders. Propose at most five, with a snake_case flag name and the current value as the default, and let the user choose. Good picks: speeds, jump or gravity values, prices and rewards, spawn rates, and a bool for any feature that might need a kill switch.
 
 ## 6. Create the flags (after the user's OK)
 
@@ -90,7 +92,7 @@ If the class already has `Awake`, add the `Bind` call to it. For code that must 
 flagsmith evaluate --jq '.flags | map_values(if .value == null then .enabled else .value end)'   # what the game will receive
 ```
 
-If a Unity Editor is open or the `unity` CLI is available, let it compile and check the Console for errors. Then tell the user:
+Compile before handing over. If no Editor has the project open, run `<Unity> -batchmode -nographics -projectPath . -quit -logFile - | grep -E "error CS"` (the Unity binary is under Unity Hub's `Editor/<version>/` folder) and expect no output. If an Editor is open, ask the user to check its Console instead of starting a second Unity. Then tell the user:
 
 > Press Play, then run `flagsmith flag update run_speed --value 12`. The running game changes within two seconds. `flagsmith flag disable double_jump` is your kill switch.
 

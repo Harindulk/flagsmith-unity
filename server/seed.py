@@ -83,9 +83,6 @@ def main():
     env_path = f"/api/v1/environments/{key}"
     # Store SDK events in Flagsmith's own Postgres, so /api/v1/events/ accepts them (no outside warehouse).
     builtin = {"source": "flagsmith_database"}
-    for conn in results(call(base, "GET", f"{env_path}/warehouse-connections/", token=token)):
-        if conn.get("config") != builtin:
-            call(base, "DELETE", f"{env_path}/warehouse-connections/{conn['id']}/", token=token)
     if not results(call(base, "GET", f"{env_path}/warehouse-connections/", token=token)):
         call(base, "POST", f"{env_path}/warehouse-connections/",
              {"warehouse_type": "postgres", "name": "Flagsmith database", "config": builtin}, token)
@@ -124,8 +121,13 @@ def main():
 
     out = {"api_url": f"{base}/api/v1/", "environment_key": key, "admin_token": token,
            "project_id": project["id"], "experiment_id": experiment["id"]}
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".seed.json"), "w") as f:
+    path = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".seed.json")
+    if os.path.exists(path):  # keep anything else stored there (e.g. a CLI key)
+        with open(path) as f:
+            out = {**json.load(f), **out}
+    with open(path, "w") as f:
         json.dump(out, f, indent=2)
+    os.chmod(path, 0o600)  # it holds the admin token
     # The sample game reads its connection from here (gitignored; the key is client-side and safe to ship).
     sample = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "Sample", "Assets", "Resources")
     os.makedirs(sample, exist_ok=True)

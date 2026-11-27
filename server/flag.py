@@ -33,6 +33,12 @@ def states():
 
 def set_flag(name, value):
     state = states()[name]
+    current = state["feature_state_value"]
+    if isinstance(current, int) and not isinstance(current, bool):  # keep integer flags integers
+        try:
+            value = int(value)
+        except ValueError:
+            pass
     body = {"enabled": value == "on"} if value in ("on", "off") else {"feature_state_value": value}
     call("PATCH", f"environments/{ENV}/featurestates/{state['id']}/", body)
 

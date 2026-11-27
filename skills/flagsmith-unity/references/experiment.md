@@ -33,16 +33,17 @@ FlagsmithBootstrap.Instance.TrackEvent("first_run_complete");
 Rules that keep the result clean:
 
 - Call `GetExperimentFlag` only where the variant is shown, and show the value it returned.
+- Flags arrive a moment after launch. If the variant shows at startup, wait for the first `FlagsChanged` (or about 4 s offline) before showing it, or the player sees the default and no exposure is recorded.
 - Fire the metric once per player per success (for "first run", guard it with a saved flag such as `PlayerPrefs`).
 - Players keep one ID across sessions automatically, so they stay in one variant.
 
 ## 4. Check the split
 
 ```sh
-for i in 1 2 3 4; do flagsmith eval tutorial_style --identity qa-$i --jq '{value, variant}'; done
+for i in $(seq 1 20); do flagsmith eval tutorial_style --identity qa-$i --jq .variant; done | sort | uniq -c
 ```
 
-Expect both variants among a few identities. All one variant: the experiment is not running, or the variant has no key.
+Expect both variants, roughly 10 each (`control` is the control value). Only one: the experiment is not running, or the variant has no key. `eval` does not save these identities.
 
 ## 5. Read the result
 
@@ -50,7 +51,7 @@ Expect both variants among a few identities. All one variant: the experiment is 
 scripts/experiment.sh results tutorial_style
 ```
 
-Read out each variant's conversion rate, the lift over control, the chance to be best and the credible interval. If the interval still crosses zero, say the result is not conclusive and suggest waiting for more players. Never invent traffic. If the user wants a demo with simulated players, they must label it as simulated wherever they show it.
+It refreshes the numbers (Flagsmith rate-limits refreshes, so they can lag a few minutes) and prints a summary. Read out each variant's conversion rate, the lift over control, the chance to be best and the credible interval. `conclusive` is true when the interval excludes zero. If it is false, say so and suggest waiting for more players, unless the user set a decision rule up front (for example "ship at 95% chance to win with 200+ players per arm"); then apply that rule and quote it. Never invent traffic. If the user wants a demo with simulated players, they must label it as simulated wherever they show it.
 
 ## 6. Ship the winner (after the user's OK)
 
