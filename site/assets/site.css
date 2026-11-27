@@ -168,8 +168,14 @@ figcaption { font-size: var(--step-small); color: var(--muted); margin-top: 10px
   .big-switch { right: auto; left: var(--m); bottom: 6svh; font-size: 24vw; }
 }
 
-/* How it works: drag through the stages */
+/* How it works: the section holds still while the scroll walks through the four stages.
+   Without script, or with reduced motion, it stays a normal section driven by the slider. */
+@media (prefers-reduced-motion: no-preference) {
+  .js .pin { height: 340svh; }
+  .js .pin .stages { position: sticky; top: 0; height: 100svh; min-height: 0; }
+}
 .stages { display: grid; grid-template-columns: 1fr 1fr; min-height: 88svh; }
+.stages .left, .stages .right { min-width: 0; } /* a wide code block must scroll inside itself, not widen the page */
 .stages .left { background: var(--surface); padding: clamp(40px, 5vw, 72px) var(--m) 180px; position: relative; }
 .stages .right { background: var(--stage); display: grid; place-items: center; padding: 48px var(--m) 180px; color: var(--stage-ink); }
 .stages h2 { font-size: clamp(2.5rem, 1.2rem + 3.4vw, 4.75rem); max-width: 10ch; transition: opacity .2s; }
@@ -186,6 +192,7 @@ figcaption { font-size: var(--step-small); color: var(--muted); margin-top: 10px
 .track input::-moz-range-thumb { width: 32px; height: 32px; background: var(--accent); border: 0; border-radius: 0; }
 .track ol { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(4, 1fr); font-size: 16px; color: var(--muted); }
 .track ol li:nth-child(2) { text-align: center; } .track ol li:nth-child(3) { text-align: center; } .track ol li:last-child { text-align: right; }
+.track ol li { cursor: pointer; }
 .track ol li.on { color: var(--ink); font-weight: 500; }
 .stages-track-bg { position: absolute; left: 0; right: 0; bottom: 0; height: 130px; background: var(--bg); }
 @media (max-width: 900px) {
