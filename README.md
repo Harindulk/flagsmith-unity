@@ -1,7 +1,13 @@
 # Flagsmith for Unity
 
+![Unity 6+](https://img.shields.io/badge/Unity-6000.0%2B-black?logo=unity) ![WebGL](https://img.shields.io/badge/WebGL-tested-2ea44f) ![Self-hosted Flagsmith 2.295.2](https://img.shields.io/badge/Flagsmith-self--hosted%202.295.2-7B51FB) ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
+
 Feature flags, remote config and A/B tests for Unity games, powered by [Flagsmith](https://flagsmith.com).
 Change a jump height, switch off a broken feature or run an experiment on your tutorial without shipping a new build or waiting on store review.
+
+![Flag Runner changing live: run speed, colour, gravity and a kill switch edited in Flagsmith while the game keeps running](docs/media/live-tuning.gif)
+
+*The sample game playing itself while `server/demo.py` edits flags in a self-hosted Flagsmith. No rebuilds, no restarts.*
 
 ```csharp
 [FlagsmithValue("run_speed")] float runSpeed = 7f;      // follows the flag, keeps 7 when offline
@@ -11,6 +17,8 @@ void Start() => flagsmith.Bind(this);
 void OnTutorialShown() => flagsmith.GetExperimentFlag("tutorial_style");    // records who saw which variant
 void OnLevelOneCleared() => flagsmith.TrackEvent("first_run_complete");     // the metric the experiment measures
 ```
+
+Why it exists: Flagsmith has no Unity SDK ([issue #3623](https://github.com/Flagsmith/flagsmith/issues/3623), open since March 2024), while Firebase Remote Config, Statsig, ConfigCat and Unity's own Remote Config all support Unity. Flagsmith's .NET SDK runs its polling and event flushing on `System.Threading.Timer`, `Task.Run` and `Task.Delay`, which don't work in Unity WebGL builds. This package is written for Unity from the start and also speaks Flagsmith's new Experimentation API.
 
 Community package, MIT licensed. It is not an official Flagsmith SDK.
 
@@ -79,6 +87,10 @@ flagsmith.TrackEvent("first_run_complete");
 flagsmith.TrackEvent("purchase", 4.99, new Dictionary<string, object> { ["item"] = "starter_pack" });
 ```
 
+The dashboard then does the statistics. This is the demo's `tutorial_style` experiment on self-hosted Flagsmith after `server/simulate.py` sent 400 synthetic players through it (named `sim-…`, every event tagged `synthetic: true`):
+
+![Flagsmith experiment results: hand variant +15.3% lift over control, 95% chance to be best](docs/media/experiment-results.png)
+
 An exposure is recorded only when the flag is on and the identity is enrolled (`Flag.InExperiment`), so players outside the experiment never skew the results. Each player keeps the same ID between sessions (stored in `PlayerPrefs`), so they stay in the same variant. Set your own ID in the component, for example your account system's user ID, when players sign in on several devices.
 
 ## Live Tuning
@@ -99,6 +111,16 @@ python3 seed.py               # project, 8 flags, a metric and a running 50/50 e
 
 Then open `Sample/` in Unity and press Play, or build WebGL with
 `unity build Sample --target WebGL --execute-method SampleBuild.WebGL -o Builds/WebGL`.
+
+Hands-free version for recording: press **A** in the game (or open the WebGL build with `?autoplay`) so it plays itself, then run `python3 demo.py`. It changes the flags below on a timeline and restores them at the end. Every change shows a caption in the game.
+
+Other tools in `server/`:
+
+| Command | Does |
+|---|---|
+| `python3 flag.py` | Lists every flag and its value |
+| `python3 flag.py run_speed 12` | Sets a value (`on` / `off` toggles a flag) |
+| `python3 simulate.py 400` | Sends 400 synthetic players through the tutorial experiment and refreshes its results |
 
 What to try while it runs:
 
@@ -132,7 +154,7 @@ The full guide and API reference are in [Documentation~/index.md](com.flagsmith.
 
 | Platform | Status |
 |---|---|
-| Unity Editor (macOS) | Tested: 17 automated tests, including one against a live self-hosted server |
+| Unity Editor (macOS) | Tested: 17 automated tests, including one against a live self-hosted server (Flagsmith 2.295.2, pinned in `server/docker-compose.yml`) |
 | WebGL | Tested: Flag Runner build in Chrome, Live Tuning and experiment events confirmed in Flagsmith |
 | Android, iOS, Windows, macOS, Linux players | Uses only `UnityWebRequest` and main-thread code, but not yet tested on devices |
 
