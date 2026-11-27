@@ -97,11 +97,11 @@ flagsmith.TrackEvent("first_run_complete");
 flagsmith.TrackEvent("purchase", 4.99, new Dictionary<string, object> { ["item"] = "starter_pack" });
 ```
 
-The dashboard then does the statistics. This is the demo's `tutorial_style` experiment on self-hosted Flagsmith after `server/simulate.py` sent 400 synthetic players through it (named `sim-…`, every event tagged `synthetic: true`). The other 10 enrolled are our own test sessions in the Editor and WebGL:
+The dashboard then does the statistics. This is the demo's `tutorial_style` experiment on self-hosted Flagsmith. We fixed the decision rule before looking: ship a variant at 95% chance to be best with at least 200 players per arm. `server/simulate.py` sent 800 synthetic players (named `sim-…`, every event tagged `synthetic: true`); the other 16 enrolled are our own test sessions. The rule passed, and a coding agent using the [Agent Skill](skills/flagsmith-unity/SKILL.md) shipped `hand` to everyone through the same flag:
 
-![Flagsmith experiment results: hand variant +15.3% lift over control, 95% chance to be best](docs/media/experiment-results.png)
+![Flagsmith experiment completed: hand +19.8% over control, over 99% chance to be best, hand rolled out to everyone](docs/media/experiment-results.png)
 
-*Synthetic data, simulated lift. `simulate.py` gives the hand variant a 62% finish rate and text 50% on purpose, to show the results page working. It is not evidence about real players.*
+*Synthetic data, simulated lift. `simulate.py` gives the hand variant a 62% finish rate and text 50% on purpose, to show the whole loop working: exposures, metric, statistics, then shipping the winner. It is not evidence about real players.*
 
 An exposure is recorded only when the flag is on and the identity is enrolled (`Flag.InExperiment`), so players outside the experiment never skew the results. Each player keeps the same ID between sessions (stored in `PlayerPrefs`), so they stay in the same variant. Set your own ID in the component, for example your account system's user ID, when players sign in on several devices.
 
@@ -134,7 +134,7 @@ Other tools in `server/`:
 |---|---|
 | `python3 flag.py` | Lists every flag and its value |
 | `python3 flag.py run_speed 12` | Sets a value (`on` / `off` toggles a flag) |
-| `python3 simulate.py 400` | Sends 400 synthetic players through the tutorial experiment and refreshes its results |
+| `python3 simulate.py 400 [first]` | Sends 400 synthetic players (IDs from `sim-<first>`) through the tutorial experiment and refreshes its results |
 
 What to try while it runs:
 

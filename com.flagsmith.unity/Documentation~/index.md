@@ -170,11 +170,11 @@ Details that matter for clean results:
 - Event names starting with `$` are reserved, and `TrackEvent` throws for them.
 - `value` is sent as text (numbers with the invariant culture). `metadata` is any JSON-serialisable dictionary. The client adds `sdk_version`.
 
-After enough players, the experiment's page in Flagsmith shows the result:
+After enough players, the experiment's page in Flagsmith shows the result. Here the rule was set beforehand (ship at 95% chance to be best with 200+ players per arm), it passed, and the experiment was completed with hand rolled out to everyone:
 
-![Flagsmith experiment results: the hand variant 15.3 percent ahead of text, 95 percent chance to be best](../../docs/media/experiment-results.png)
+![Flagsmith experiment completed: hand 19.8 percent ahead of text, over 99 percent chance to be best, rolled out to everyone](../../docs/media/experiment-results.png)
 
-*Self-hosted Flagsmith after `server/simulate.py` sent 400 synthetic players through the demo experiment. The lift is simulated on purpose to show the page working; it says nothing about real players.*
+*Self-hosted Flagsmith after `server/simulate.py` sent 800 synthetic players through the demo experiment. The lift is simulated on purpose to show the loop working; it says nothing about real players.*
 
 ### Delivery
 
@@ -342,7 +342,7 @@ To record or present it hands-free, press **A** in the game so it plays itself, 
 | `python3 flag.py` | Lists every flag and its value |
 | `python3 flag.py run_speed 12` | Sets a value (`on` / `off` toggles a flag) |
 | `python3 demo.py` | Runs the scripted live-tuning timeline |
-| `python3 simulate.py 400` | Sends 400 synthetic players through the tutorial experiment and refreshes its results |
+| `python3 simulate.py 400 [first]` | Sends 400 synthetic players (IDs from `sim-<first>`) through the tutorial experiment and refreshes its results |
 
 > This setup is for local demos only. It uses the default secrets from Flagsmith's compose file, allows any host, and `seed.py` creates an admin with a fixed password. For a real deployment, follow [Flagsmith's self-hosting guide](https://docs.flagsmith.com/deployment-self-hosting).
 
