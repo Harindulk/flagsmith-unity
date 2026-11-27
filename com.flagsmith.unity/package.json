@@ -2,7 +2,7 @@
   "name": "com.flagsmith.unity",
   "version": "0.1.0",
   "displayName": "Flagsmith for Unity",
-  "description": "Feature flags, remote config, Live Tuning and A/B testing (Flagsmith Experimentation) for Unity. Works with Flagsmith Cloud and self-hosted Flagsmith, on every platform including WebGL.",
+  "description": "Feature flags, remote config, Live Tuning and A/B testing (Flagsmith Experimentation) for Unity. Runs on Unity's main thread with UnityWebRequest, so it works in WebGL builds. Tested against self-hosted Flagsmith.",
   "unity": "6000.0",
   "license": "MIT",
   "keywords": [

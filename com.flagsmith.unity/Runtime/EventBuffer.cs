@@ -8,7 +8,7 @@ namespace Flagsmith
 {
     /// <summary>
     /// Queues Experimentation events and cuts them into batches the events API accepts:
-    /// at most 2 MiB a request, nothing older than 10 days, one copy of each exposure.
+    /// at most 2 MiB a request, nothing older than 10 days, each exposure once per session.
     /// Taken batches stay "in flight" until acknowledged, so saving mid-flush or a failed send loses nothing.
     /// </summary>
     public sealed class EventBuffer
@@ -20,7 +20,7 @@ namespace Flagsmith
 
         readonly List<JObject> _queue = new List<JObject>();
         readonly List<List<JObject>> _inFlight = new List<List<JObject>>();
-        readonly HashSet<string> _exposureKeys = new HashSet<string>(); // queued or in flight
+        readonly HashSet<string> _exposureKeys = new HashSet<string>(); // queued, in flight or already delivered this session
 
         /// <summary>Events not yet delivered, including those being sent.</summary>
         public int Count => _queue.Count + _inFlight.Sum(b => b?.Count ?? 0);
@@ -78,8 +78,7 @@ namespace Flagsmith
         public void Acknowledge(int index)
         {
             if (index < 0 || index >= _inFlight.Count || _inFlight[index] == null) return;
-            foreach (var e in _inFlight[index]) Forget(e);
-            _inFlight[index] = null;
+            _inFlight[index] = null; // exposure keys stay, so a delivered exposure isn't sent again this session
         }
 
         /// <summary>Puts every unacknowledged batch back at the front of the queue, in order.</summary>
@@ -106,6 +105,7 @@ namespace Flagsmith
             catch (JsonReaderException) { }
         }
 
+        // Only for events dropped before delivery, so the exposure can be recorded again.
         void Forget(JObject e)
         {
             if (IsExposure(e)) _exposureKeys.Remove(ExposureKey(e));

@@ -6,6 +6,8 @@ Feature flags, remote config and A/B tests for Unity games, powered by [Flagsmit
 Ship one build, give different players different versions of your game, and see in Flagsmith which version does better.
 Change a jump height, switch off a broken feature or run an experiment on your tutorial without shipping a new build or waiting on store review.
 
+Community package, MIT licensed. It is not an official Flagsmith SDK.
+
 ![Flag Runner changing live: run speed, colour, gravity and a kill switch edited in Flagsmith while the game keeps running](docs/media/live-tuning.gif)
 
 *The sample game playing itself while `server/demo.py` edits flags in a self-hosted Flagsmith. The build never changes.*
@@ -21,7 +23,20 @@ void OnLevelOneCleared() => flagsmith.TrackEvent("first_run_complete");     // t
 
 Why it exists: Flagsmith has no Unity SDK. [Its FAQ](https://docs.flagsmith.com/support/faq/sdks-implementation) points Unity developers to the .NET SDK, which runs its polling and event flushing on `System.Threading.Timer`, `Task.Run` and `Task.Delay`, and those don't work in Unity WebGL builds. The Flagsmith team's own "Unity SDK" issue ([#3623](https://github.com/Flagsmith/flagsmith/issues/3623), March 2024) was closed as not planned in November 2026. Firebase Remote Config, Statsig, ConfigCat and Unity's own Remote Config all support Unity. This package is written for Unity from the start and also speaks Flagsmith's new Experimentation API.
 
-Community package, MIT licensed. It is not an official Flagsmith SDK.
+## Toggle Wars: where to look
+
+Built for [Flagsmith Toggle Wars](https://www.wemakedevs.org/hackathons/flagsmith), 26 to 29 November 2026. Everything below was written in that window.
+
+**Try it without installing anything:** [play Flag Runner in your browser](https://harindulk.github.io/flagsmith-unity/#play) and move the flags beside it. That page runs the real package in a WebGL build against a stand-in for the Flagsmith API inside the page, so it needs no login. For the real thing, [two commands](#try-the-demo) start self-hosted Flagsmith 2.295.2 with the flags, a metric and a running experiment.
+
+| Track | What it asks for | Where to see it |
+|---|---|---|
+| 1. Experimentation | A clear question, versions behind a flag, a metric from events, results you can explain | [The tutorial experiment](#ab-testing-with-flagsmith-experimentation): question, rule set in advance, result and the decision |
+| 2. Agents | Flagsmith CLI, saves real time, a human approves changes, clear output | [One recorded agent run](docs/agent-run.md): 20 seconds from prompt to shipped winner, with every command and its output |
+| 3. Open source | Self-hosted Flagsmith, integrations and developer tools, easy to reuse | [`server/`](server/) (pinned Docker Compose and a seed script), the [package](com.flagsmith.unity/) with its Editor window, and a [one-URL install](#install) |
+| 4. Agent Skill | Completes the whole job, token efficiency, creative use of the CLI, safety around production | [`skills/flagsmith-unity`](skills/flagsmith-unity/SKILL.md) and the [token counts](docs/agent-run.md) for its demo run: 1,522 output tokens |
+
+Tests: 26 for the package (run in the Unity Editor, one of them against a live self-hosted server) and 10 for the skill script, site and server helper (run on every push).
 
 ## What you get
 
@@ -72,6 +87,8 @@ public class Player : MonoBehaviour
 
 Prefer plain calls? `flagsmith.Flags.GetValue("run_speed", 7f)` and `flagsmith.Flags.IsEnabled("double_jump")` work too, and `FlagsChanged` tells you when to read them again.
 
+Flags arrive a moment after the game starts. Until the first fetch returns, reads give your defaults (or the cached values from the last session), and `GetExperimentFlag` records nothing. If something depends on a flag at startup, wait for the first `FlagsChanged`.
+
 Package Manager also offers a **Quickstart** sample (select the package, then Samples > Import).
 
 ### Or let your coding agent do it
@@ -98,9 +115,23 @@ flagsmith.TrackEvent("first_run_complete");
 flagsmith.TrackEvent("purchase", 4.99, new Dictionary<string, object> { ["item"] = "starter_pack" });
 ```
 
-The dashboard then does the statistics. This is the demo's `tutorial_style` experiment on self-hosted Flagsmith. We fixed the decision rule before looking: ship a variant at 95% chance to be best with at least 200 players per arm. `server/simulate.py` sent 800 synthetic players (named `sim-…`, every event tagged `synthetic: true`); the other 16 enrolled are our own test sessions. The rule passed, and a coding agent using the [Agent Skill](skills/flagsmith-unity/SKILL.md) shipped `hand` to everyone through the same flag:
+The dashboard then does the statistics.
 
-![Flagsmith experiment completed: hand +19.8% over control, over 99% chance to be best, hand rolled out to everyone](docs/media/experiment-results.png)
+### The demo experiment
+
+**Question:** does a pointing-hand tutorial get more new players through their first run than a text hint?
+
+| | |
+|---|---|
+| Flag | `tutorial_style`: `text` (control) or `hand`, split 50/50 by player ID |
+| Exposure | `$flag_exposure`, sent at the moment the tutorial appears |
+| Metric | `first_run_complete`, sent when a player reaches 100 m on their first run |
+| Rule, set before looking | Ship a variant at 95% chance to be best, with at least 200 players per arm |
+| Players | **Synthetic.** `server/simulate.py` sent 800 simulated players (named `sim-…`, every event tagged `synthetic: true`) through the same events API the game uses. The other 16 are our own test sessions |
+| Result | `hand` 64.3% (268 of 417) against `text` 53.6% (214 of 399): +19.8% lift, 99.7% chance to be best, 95% interval +5.9% to +33.7% |
+| Decision | The rule passed, so a coding agent using the [Agent Skill](skills/flagsmith-unity/SKILL.md) shipped `hand` to everyone through the same flag ([the recorded run](docs/agent-run.md)) |
+
+![Flagsmith experiment page, synthetic players: hand +19.8% over control, over 99% chance to be best, hand rolled out to everyone](docs/media/experiment-results.png)
 
 *Synthetic data, simulated lift. `simulate.py` gives the hand variant a 62% finish rate and text 50% on purpose, to show the whole loop working: exposures, metric, statistics, then shipping the winner. It is not evidence about real players.*
 

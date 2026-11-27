@@ -96,7 +96,7 @@ namespace Flagsmith.Tests
         }
 
         [Test]
-        public async Task ExperimentFlag_RecordsOneExposurePerBatch()
+        public async Task ExperimentFlag_RecordsOneExposurePerSession()
         {
             transport.Default = Ok(IdentityJson);
             var flag = await client.GetExperimentFlag("tutorial_style", "p1");
@@ -116,6 +116,11 @@ namespace Flagsmith.Tests
             Assert.AreEqual(4, (int)e["metadata"]["experiment_id"]);
             Assert.AreEqual(now, (long)e["timestamp"]);
             Assert.AreEqual(Key, transport.EventPosts.Single().Headers["X-Environment-Key"]);
+
+            // Delivered: seeing the same variant again this session sends nothing more.
+            await client.GetExperimentFlag("tutorial_style", "p1");
+            await client.FlushEvents();
+            Assert.AreEqual(1, transport.EventPosts.Count());
         }
 
         [Test]

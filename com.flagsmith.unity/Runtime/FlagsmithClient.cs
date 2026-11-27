@@ -45,7 +45,7 @@ namespace Flagsmith
             if (string.IsNullOrEmpty(options?.EnvironmentKey))
                 throw new ArgumentException("An environment key is required.", nameof(options));
             // Server-side keys can change flags and read every identity; anything in a game build can be extracted.
-            if (options.EnvironmentKey.StartsWith("ser."))
+            if (options.EnvironmentKey.StartsWith("ser.", StringComparison.Ordinal))
                 throw new ArgumentException("That is a server-side key. Use the client-side environment key in games.", nameof(options));
             _options = options;
             _transport = transport ?? new UnityWebRequestTransport();
@@ -105,7 +105,7 @@ namespace Flagsmith
         public void TrackEvent(string eventName, string identifier = null, object value = null, IDictionary<string, object> metadata = null)
         {
             if (string.IsNullOrEmpty(eventName)) throw new ArgumentException("The event name must not be empty.", nameof(eventName));
-            if (eventName.StartsWith("$")) throw new ArgumentException("Event names starting with \"$\" are reserved.", nameof(eventName));
+            if (eventName.StartsWith("$", StringComparison.Ordinal)) throw new ArgumentException("Event names starting with \"$\" are reserved.", nameof(eventName));
             _events.Add(MakeEvent(eventName, null, identifier, value, metadata));
         }
 
