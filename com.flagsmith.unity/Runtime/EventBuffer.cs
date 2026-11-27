@@ -23,12 +23,7 @@ namespace Flagsmith
 
         public void Add(JObject e)
         {
-            if ((string)e["event"] == ExposureEvent)
-            {
-                var key = $"{e["feature_name"]}\n{e["identifier"]}\n{e["value"]}\n{e["metadata"]?["experiment_id"]}";
-                if (!_exposureKeys.Add(key)) return;
-            }
-            // shortcut: in-memory only, so events still queued when the app is killed are lost; persist to disk if that matters.
+            if (IsExposure(e) && !_exposureKeys.Add(ExposureKey(e))) return;
             if (_queue.Count >= MaxQueued) _queue.RemoveAt(0);
             _queue.Add(e);
         }
@@ -66,9 +61,31 @@ namespace Flagsmith
         {
             var events = (JArray)JObject.Parse(batchBody)["events"];
             var restored = new List<JObject>();
-            foreach (JObject e in events) restored.Add(e);
+            foreach (JObject e in events)
+            {
+                restored.Add(e);
+                if (IsExposure(e)) _exposureKeys.Add(ExposureKey(e));
+            }
             _queue.InsertRange(0, restored);
         }
+
+        /// <summary>The queue as JSON, for saving across app restarts.</summary>
+        public string Save() => new JArray(_queue).ToString(Formatting.None);
+
+        /// <summary>Adds events saved by <see cref="Save"/>. Ignores missing or unreadable data.</summary>
+        public void Load(string json)
+        {
+            if (string.IsNullOrEmpty(json)) return;
+            try
+            {
+                foreach (var e in JArray.Parse(json))
+                    if (e is JObject o) Add(o);
+            }
+            catch (JsonReaderException) { }
+        }
+
+        static bool IsExposure(JObject e) => (string)e["event"] == ExposureEvent;
+        static string ExposureKey(JObject e) => $"{e["feature_name"]}\n{e["identifier"]}\n{e["value"]}\n{e["metadata"]?["experiment_id"]}";
 
         static string Wrap(List<string> events) => "{\"events\":[" + string.Join(",", events) + "]}";
     }

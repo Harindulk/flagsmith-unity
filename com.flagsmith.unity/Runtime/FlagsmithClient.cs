@@ -44,6 +44,9 @@ namespace Flagsmith
         {
             if (string.IsNullOrEmpty(options?.EnvironmentKey))
                 throw new ArgumentException("An environment key is required.", nameof(options));
+            // Server-side keys can change flags and read every identity; anything in a game build can be extracted.
+            if (options.EnvironmentKey.StartsWith("ser."))
+                throw new ArgumentException("That is a server-side key. Use the client-side environment key in games.", nameof(options));
             _options = options;
             _transport = transport ?? new UnityWebRequestTransport();
             _cache = cache ?? new FileFlagCache();
@@ -51,14 +54,20 @@ namespace Flagsmith
             _apiUrl = string.IsNullOrEmpty(options.ApiUrl) ? CloudApi : options.ApiUrl.TrimEnd('/') + "/";
             _eventsUrl = !string.IsNullOrEmpty(options.EventsUrl) ? options.EventsUrl
                 : _apiUrl == CloudApi ? CloudEvents : _apiUrl + "events/";
+            _events.Load(_cache.Read(EventsKey));
         }
+
+        string EventsKey => _options.EnvironmentKey + "|events";
+
+        /// <summary>Writes queued events to the cache so they survive the app being killed. FlagsmithBehaviour calls this on pause and quit.</summary>
+        public void SaveEvents() => _cache.Write(EventsKey, _events.Save());
 
         public int PendingEvents => _events.Count;
 
         public async Task<Flags> GetEnvironmentFlags()
         {
             var json = await Fetch("GET", _apiUrl + "flags/", null, "env");
-            return json == null ? Flags.Empty : Parse(JToken.Parse(json.Value.body), json.Value.source);
+            return json == null ? Flags.Empty : Parse(json.Value.body, json.Value.source);
         }
 
         public async Task<Flags> GetIdentityFlags(string identifier, IDictionary<string, object> traits = null)
@@ -71,7 +80,7 @@ namespace Flagsmith
                     .Select(t => new JObject { ["trait_key"] = t.Key, ["trait_value"] = t.Value == null ? null : JToken.FromObject(t.Value) })),
             };
             var json = await Fetch("POST", _apiUrl + "identities/", body.ToString(Formatting.None), "id:" + identifier);
-            return json == null ? Flags.Empty : Parse(JToken.Parse(json.Value.body)["flags"], json.Value.source);
+            return json == null ? Flags.Empty : Parse(json.Value.body["flags"], json.Value.source);
         }
 
         /// <summary>
@@ -128,7 +137,11 @@ namespace Flagsmith
                     Debug.LogError($"[Flagsmith] Events API rejected a batch (HTTP {res.Status}): {res.Body}");
                 }
             }
-            finally { _flushing = false; }
+            finally
+            {
+                _flushing = false;
+                SaveEvents();
+            }
         }
 
         JObject MakeEvent(string name, string feature, string identifier, object value, IDictionary<string, object> metadata)
@@ -152,18 +165,27 @@ namespace Flagsmith
         static Flags Parse(JToken flags, FlagSource source) =>
             new Flags(flags is JArray a ? a.Select(Flag.FromJson) : Enumerable.Empty<Flag>(), source);
 
-        async Task<(string body, FlagSource source)?> Fetch(string method, string url, string body, string cacheKey)
+        async Task<(JToken body, FlagSource source)?> Fetch(string method, string url, string body, string cacheKey)
         {
             var key = _options.EnvironmentKey + "|" + cacheKey;
             var res = await Send(method, url, body);
-            if (res.IsSuccess && res.Body != null)
+            // A 200 can still be a captive-portal or proxy page, so only JSON is trusted and cached.
+            var parsed = res.IsSuccess ? TryParse(res.Body) : null;
+            if (parsed != null)
             {
                 _cache.Write(key, res.Body);
-                return (res.Body, FlagSource.Server);
+                return (parsed, FlagSource.Server);
             }
-            Debug.LogWarning($"[Flagsmith] {method} {url} failed ({res.Error ?? "HTTP " + res.Status}); using cached or default values.");
-            var cached = _cache.Read(key);
-            return cached == null ? ((string, FlagSource)?)null : (cached, FlagSource.Cache);
+            Debug.LogWarning($"[Flagsmith] {method} {url} failed ({res.Error ?? "HTTP " + res.Status + (res.IsSuccess ? ", not JSON" : "")}); using cached or default values.");
+            var cached = TryParse(_cache.Read(key));
+            return cached == null ? ((JToken, FlagSource)?)null : (cached, FlagSource.Cache);
+        }
+
+        static JToken TryParse(string json)
+        {
+            if (string.IsNullOrEmpty(json)) return null;
+            try { return JToken.Parse(json); }
+            catch (JsonReaderException) { return null; }
         }
 
         async Task<HttpResponse> Send(string method, string url, string body)
@@ -175,8 +197,9 @@ namespace Flagsmith
 
             var res = await _transport.Send(request);
             if (!res.IsRetryable) return res;
-            if (_options.RetryDelaySeconds > 0)
-                await Awaitable.WaitForSecondsAsync(_options.RetryDelaySeconds);
+            // Real time: a game paused with Time.timeScale = 0 must not stall the retry.
+            var resumeAt = Time.realtimeSinceStartup + _options.RetryDelaySeconds;
+            while (Time.realtimeSinceStartup < resumeAt) await Awaitable.NextFrameAsync();
             return await _transport.Send(request);
         }
     }

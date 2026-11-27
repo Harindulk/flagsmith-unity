@@ -15,8 +15,8 @@ namespace Flagsmith
         [SerializeField] FlagsmithOptions options = new FlagsmithOptions();
         [Tooltip("Who the flags are for. Empty = a random ID kept in PlayerPrefs, so a player keeps their experiment variant.")]
         [SerializeField] string identifier;
-        [Tooltip("Seconds between flag refreshes. 0 = fetch once.")]
-        [SerializeField] float refreshSeconds = 2f;
+        [Tooltip("Seconds between flag refreshes. 0 = fetch once. Use 1-2 s while tuning live, 60+ s in production.")]
+        [SerializeField] float refreshSeconds = 60f;
         [Tooltip("Seconds between event uploads.")]
         [SerializeField] float flushSeconds = 10f;
 
@@ -31,7 +31,7 @@ namespace Flagsmith
         string _signature;
 
         /// <summary>Call right after AddComponent when you configure from code instead of the Inspector.</summary>
-        public void Init(FlagsmithOptions opts, string id = null, float refresh = 2f)
+        public void Init(FlagsmithOptions opts, string id = null, float refresh = 60f)
         {
             options = opts;
             identifier = id;
@@ -61,6 +61,21 @@ namespace Flagsmith
             return flag;
         }
 
+        /// <summary>
+        /// Keeps every [FlagsmithValue] field and property of <paramref name="target"/> in sync with the flags,
+        /// now and after every change. Unbinds itself when the target is a destroyed Unity object.
+        /// </summary>
+        public void Bind(object target)
+        {
+            if (Flags.All.Count > 0) FlagsmithValueAttribute.Apply(Flags, target);
+            void OnChanged(Flags f)
+            {
+                if (target is UnityEngine.Object o && o == null) { FlagsChanged -= OnChanged; return; }
+                FlagsmithValueAttribute.Apply(f, target);
+            }
+            FlagsChanged += OnChanged;
+        }
+
         public void TrackEvent(string eventName, object value = null, IDictionary<string, object> metadata = null) =>
             Client?.TrackEvent(eventName, Identifier, value, metadata);
 
@@ -83,7 +98,8 @@ namespace Flagsmith
             {
                 do
                 {
-                    await Refresh();
+                    try { await Refresh(); }
+                    catch (Exception e) when (!(e is OperationCanceledException)) { Debug.LogException(e); } // one bad refresh must not end Live Tuning
                     if (refreshSeconds <= 0) return;
                     await WaitRealtime(refreshSeconds);
                 } while (true);
@@ -111,11 +127,19 @@ namespace Flagsmith
             while (Time.realtimeSinceStartup < end) await Awaitable.NextFrameAsync(destroyCancellationToken);
         }
 
-        // shortcut: a WebGL tab closed between flushes loses its last events (no quit callback in browsers); a pagehide jslib with fetch keepalive would fix it.
-        // Mobile apps are often killed after pausing, and a browser tab after losing focus: send what we have.
-        void OnApplicationPause(bool paused) { if (paused) _ = Client?.FlushEvents(); }
-        void OnApplicationFocus(bool focused) { if (!focused) _ = Client?.FlushEvents(); }
-        void OnApplicationQuit() => _ = Client?.FlushEvents();
+        // Mobile apps are often killed after pausing, and a browser tab after losing focus:
+        // save the queue to disk first, then try to send it.
+        // shortcut: a WebGL tab closed without losing focus first can drop events from the last flush interval; a pagehide jslib with fetch keepalive would fix it.
+        void OnApplicationPause(bool paused) { if (paused) SaveAndFlush(); }
+        void OnApplicationFocus(bool focused) { if (!focused) SaveAndFlush(); }
+        void OnApplicationQuit() => SaveAndFlush();
+
+        void SaveAndFlush()
+        {
+            if (Client == null) return;
+            Client.SaveEvents();
+            _ = Client.FlushEvents();
+        }
 
         static string PersistentId()
         {

@@ -207,5 +207,67 @@ namespace Flagsmith.Tests
             Assert.AreEqual(2, transport.Requests.Count);
             Assert.AreEqual(FlagSource.Server, flags.Source);
         }
+        [Test]
+        public async Task NonJsonSuccess_IsNotCached_AndFallsBack()
+        {
+            transport.Responses.Enqueue(Ok(IdentityJson));
+            await client.GetIdentityFlags("p1");
+            transport.Responses.Enqueue(Ok("<html>Wi-Fi login</html>")); // captive portal
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("failed"));
+            var flags = await client.GetIdentityFlags("p1");
+            Assert.AreEqual(FlagSource.Cache, flags.Source);
+            Assert.AreEqual(7.5f, flags.GetValue("run_speed", 1f));
+        }
+
+        [Test]
+        public void QueuedEvents_SurviveARestart()
+        {
+            client.TrackEvent("level_up", "p1");
+            client.SaveEvents();
+            var restarted = new FlagsmithClient(new FlagsmithOptions { EnvironmentKey = Key, ApiUrl = "http://local:8000/api/v1/" }, transport, cache, () => now);
+            Assert.AreEqual(1, restarted.PendingEvents);
+        }
+
+        [Test]
+        public async Task RequeuedExposure_IsStillDeduped()
+        {
+            transport.Default = Ok(IdentityJson);
+            await client.GetExperimentFlag("tutorial_style", "p1");
+            transport.Default = new HttpResponse(0, null, "offline");
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("retry"));
+            await client.FlushEvents();
+            transport.Default = Ok(IdentityJson);
+            await client.GetExperimentFlag("tutorial_style", "p1");
+            Assert.AreEqual(1, client.PendingEvents);
+        }
+
+        [Test]
+        public void ServerSideKey_IsRefused()
+        {
+            Assert.Throws<System.ArgumentException>(() =>
+                new FlagsmithClient(new FlagsmithOptions { EnvironmentKey = "ser.abc123" }, transport, cache));
+        }
+
+        class Tuning
+        {
+            [FlagsmithValue("run_speed")] public float speed = 1f;
+            [FlagsmithValue("lives")] public int Lives { get; set; }
+            [FlagsmithValue("double_jump")] public bool doubleJump = true;
+            [FlagsmithValue("missing")] public string untouched = "keep";
+        }
+
+        [Test]
+        public async Task Bind_SetsAttributedFieldsAndProperties()
+        {
+            transport.Responses.Enqueue(Ok(IdentityJson));
+            var flags = await client.GetIdentityFlags("p1");
+            var t = new Tuning();
+            FlagsmithValueAttribute.Apply(flags, t);
+            Assert.AreEqual(7.5f, t.speed);
+            Assert.AreEqual(3, t.Lives);
+            Assert.IsFalse(t.doubleJump, "a bool binds to the flag's enabled state");
+            Assert.AreEqual("keep", t.untouched);
+        }
     }
 }
+

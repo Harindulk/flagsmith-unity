@@ -2,18 +2,33 @@
   "name": "com.flagsmith.unity",
   "version": "0.1.0",
   "displayName": "Flagsmith for Unity",
-  "description": "Feature flags, remote config and Experimentation for Unity, built on UnityWebRequest so it runs on WebGL, Android and iOS. Works with Flagsmith Cloud or self-hosted Flagsmith.",
+  "description": "Feature flags, remote config, Live Tuning and A/B testing (Flagsmith Experimentation) for Unity. Works with Flagsmith Cloud and self-hosted Flagsmith, on every platform including WebGL.",
   "unity": "6000.0",
   "license": "MIT",
   "keywords": [
     "flagsmith",
     "feature flags",
     "remote config",
-    "a/b testing",
-    "experimentation"
+    "ab testing",
+    "experimentation",
+    "live ops"
   ],
   "dependencies": {
     "com.unity.nuget.newtonsoft-json": "3.2.1",
     "com.unity.modules.unitywebrequest": "1.0.0"
-  }
+  },
+  "author": {
+    "name": "Harindu",
+    "url": "https://github.com/Harindulk"
+  },
+  "documentationUrl": "https://github.com/Harindulk/flagsmith-unity/blob/main/com.flagsmith.unity/Documentation~/index.md",
+  "changelogUrl": "https://github.com/Harindulk/flagsmith-unity/blob/main/com.flagsmith.unity/CHANGELOG.md",
+  "licensesUrl": "https://github.com/Harindulk/flagsmith-unity/blob/main/LICENSE",
+  "samples": [
+    {
+      "displayName": "Quickstart",
+      "description": "Remote config with [FlagsmithValue], an experiment exposure and a conversion event in one script.",
+      "path": "Samples~/Quickstart"
+    }
+  ]
 }

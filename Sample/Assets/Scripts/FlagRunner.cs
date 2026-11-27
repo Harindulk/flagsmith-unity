@@ -80,7 +80,8 @@ public sealed class FlagRunner : MonoBehaviour
         }
         flagsmith = gameObject.AddComponent<FlagsmithBehaviour>();
         flagsmith.FlagsChanged += ApplyFlags;
-        flagsmith.Init(new FlagsmithOptions { EnvironmentKey = conn.environment_key, ApiUrl = conn.api_url });
+        // 2 s refresh = Live Tuning for the demo; ship with the 60 s default.
+        flagsmith.Init(new FlagsmithOptions { EnvironmentKey = conn.environment_key, ApiUrl = conn.api_url }, refresh: 2f);
     }
 
     void ApplyFlags(Flags flags)

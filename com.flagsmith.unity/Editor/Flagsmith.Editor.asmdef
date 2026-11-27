@@ -1,0 +1,7 @@
+{
+  "name": "Flagsmith.Editor",
+  "rootNamespace": "Flagsmith.Editor",
+  "references": ["Flagsmith.Runtime"],
+  "includePlatforms": ["Editor"],
+  "autoReferenced": false
+}
