@@ -2,7 +2,6 @@ using System.Collections;
 using System.Collections.Generic;
 using Flagsmith;
 using UnityEngine;
-using UnityEngine.InputSystem;
 
 /// <summary>
 /// "Flag Runner": a one-button runner whose tuning all comes from Flagsmith.
@@ -151,9 +150,9 @@ public sealed class FlagRunner : MonoBehaviour
 
     void Update()
     {
-        var pressed = (Keyboard.current?.spaceKey.wasPressedThisFrame ?? false)
-                      || (Pointer.current?.press.wasPressedThisFrame ?? false);
-        if (Keyboard.current?.aKey.wasPressedThisFrame ?? false) autoplay = !autoplay;
+        var pressed = Input.GetKeyDown(KeyCode.Space)
+                      || Input.GetMouseButtonDown(0);
+        if (Input.GetKeyDown(KeyCode.A)) autoplay = !autoplay;
         if (autoplay)
             pressed |= state == State.Ready || (state == State.Running && AutoJump())
                        || (state == State.Dead && Time.unscaledTime - deadAt > 1.2f);
