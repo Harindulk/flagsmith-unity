@@ -1,6 +1,6 @@
 # Flagsmith for Unity
 
-![Unity 6+](https://img.shields.io/badge/Unity-6000.0%2B-black?logo=unity) ![WebGL](https://img.shields.io/badge/WebGL-tested-2ea44f) ![Self-hosted Flagsmith 2.295.2](https://img.shields.io/badge/Flagsmith-self--hosted%202.295.2-7B51FB) ![License: MIT](https://img.shields.io/badge/license-MIT-blue)
+![Unity 6+](https://img.shields.io/badge/Unity-6000.0%2B-black?logo=unity) ![WebGL](https://img.shields.io/badge/WebGL-tested-2ea44f) ![Self-hosted Flagsmith 2.295.2](https://img.shields.io/badge/Flagsmith-self--hosted%202.295.2-7B51FB) ![License: MIT](https://img.shields.io/badge/license-MIT-blue) [![Tests](https://github.com/Harindulk/flagsmith-unity/actions/workflows/tests.yml/badge.svg)](https://github.com/Harindulk/flagsmith-unity/actions/workflows/tests.yml)
 
 Feature flags, remote config and A/B tests for Unity games, powered by [Flagsmith](https://flagsmith.com).
 Change a jump height, switch off a broken feature or run an experiment on your tutorial without shipping a new build or waiting on store review.
