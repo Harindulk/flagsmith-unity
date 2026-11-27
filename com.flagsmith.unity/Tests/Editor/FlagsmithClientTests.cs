@@ -220,6 +220,18 @@ namespace Flagsmith.Tests
         }
 
         [Test]
+        public async Task WrongShapeJson_IsNotCached_AndFallsBack()
+        {
+            transport.Responses.Enqueue(Ok(IdentityJson));
+            await client.GetIdentityFlags("p1");
+            transport.Responses.Enqueue(Ok(@"{""detail"":""Maintenance""}")); // valid JSON, but no flags
+            UnityEngine.TestTools.LogAssert.Expect(UnityEngine.LogType.Warning, new System.Text.RegularExpressions.Regex("failed"));
+            var flags = await client.GetIdentityFlags("p1");
+            Assert.AreEqual(FlagSource.Cache, flags.Source);
+            Assert.AreEqual(7.5f, flags.GetValue("run_speed", 1f), "the good cached flags must survive");
+        }
+
+        [Test]
         public void QueuedEvents_SurviveARestart()
         {
             client.TrackEvent("level_up", "p1");

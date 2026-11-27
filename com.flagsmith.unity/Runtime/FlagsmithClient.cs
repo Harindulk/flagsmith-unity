@@ -66,7 +66,7 @@ namespace Flagsmith
 
         public async Task<Flags> GetEnvironmentFlags()
         {
-            var json = await Fetch("GET", _apiUrl + "flags/", null, "env");
+            var json = await Fetch("GET", _apiUrl + "flags/", null, "env", t => t is JArray);
             return json == null ? Flags.Empty : Parse(json.Value.body, json.Value.source);
         }
 
@@ -79,7 +79,7 @@ namespace Flagsmith
                 ["traits"] = new JArray((traits ?? new Dictionary<string, object>())
                     .Select(t => new JObject { ["trait_key"] = t.Key, ["trait_value"] = t.Value == null ? null : JToken.FromObject(t.Value) })),
             };
-            var json = await Fetch("POST", _apiUrl + "identities/", body.ToString(Formatting.None), "id:" + identifier);
+            var json = await Fetch("POST", _apiUrl + "identities/", body.ToString(Formatting.None), "id:" + identifier, t => t["flags"] is JArray);
             return json == null ? Flags.Empty : Parse(json.Value.body["flags"], json.Value.source);
         }
 
@@ -165,19 +165,21 @@ namespace Flagsmith
         static Flags Parse(JToken flags, FlagSource source) =>
             new Flags(flags is JArray a ? a.Select(Flag.FromJson) : Enumerable.Empty<Flag>(), source);
 
-        async Task<(JToken body, FlagSource source)?> Fetch(string method, string url, string body, string cacheKey)
+        async Task<(JToken body, FlagSource source)?> Fetch(string method, string url, string body, string cacheKey, Func<JToken, bool> isFlags)
         {
             var key = _options.EnvironmentKey + "|" + cacheKey;
             var res = await Send(method, url, body);
-            // A 200 can still be a captive-portal or proxy page, so only JSON is trusted and cached.
+            // A 200 can still be a captive-portal page or a proxy's JSON error, so only a real flags payload is trusted and cached.
             var parsed = res.IsSuccess ? TryParse(res.Body) : null;
+            if (parsed != null && !isFlags(parsed)) parsed = null;
             if (parsed != null)
             {
                 _cache.Write(key, res.Body);
                 return (parsed, FlagSource.Server);
             }
-            Debug.LogWarning($"[Flagsmith] {method} {url} failed ({res.Error ?? "HTTP " + res.Status + (res.IsSuccess ? ", not JSON" : "")}); using cached or default values.");
+            Debug.LogWarning($"[Flagsmith] {method} {url} failed ({res.Error ?? "HTTP " + res.Status + (res.IsSuccess ? ", not a flags response" : "")}); using cached or default values.");
             var cached = TryParse(_cache.Read(key));
+            if (cached != null && !isFlags(cached)) cached = null;
             return cached == null ? ((JToken, FlagSource)?)null : (cached, FlagSource.Cache);
         }
 

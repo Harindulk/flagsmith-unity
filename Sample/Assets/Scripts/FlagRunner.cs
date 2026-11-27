@@ -37,7 +37,7 @@ public sealed class FlagRunner : MonoBehaviour
     State state;
     float distance, vy, nextSpawn = 6f, deadAt;
     int score, jumpsLeft, runs;
-    bool grounded = true, goalSent;
+    bool grounded = true, goalSent, firstRun;
 
     Transform player, playerVisual, cam;
     SpriteRenderer playerSprite;
@@ -183,6 +183,11 @@ public sealed class FlagRunner : MonoBehaviour
     {
         state = State.Running;
         runs++;
+        // The metric is "finished the very first run", so remember (per player, across sessions) that it has started.
+        var firstRunKey = "flagrunner.first_run_started." + flagsmith?.Identifier;
+        firstRun = PlayerPrefs.GetInt(firstRunKey, 0) == 0;
+        PlayerPrefs.SetInt(firstRunKey, 1);
+        PlayerPrefs.Save();
         // Count the exposure only if the tutorial on screen is the variant Flagsmith served this player
         // (not the offline default), so the experiment never credits a variant nobody saw.
         var served = flagsmith?.Flags.Get("tutorial_style");
@@ -244,14 +249,8 @@ public sealed class FlagRunner : MonoBehaviour
         if (!goalSent && distance >= GoalMeters)
         {
             goalSent = true;
-            // Once per player, ever: the metric is "players who finish a first run", so replays must not add to it.
-            var key = "flagrunner.first_run_complete." + flagsmith?.Identifier;
-            if (flagsmith != null && PlayerPrefs.GetInt(key, 0) == 0)
-            {
-                PlayerPrefs.SetInt(key, 1);
-                PlayerPrefs.Save();
-                flagsmith.TrackEvent("first_run_complete", Mathf.RoundToInt(distance), new Dictionary<string, object> { ["runs"] = runs });
-            }
+            // Only the player's very first run counts: a later run reaching 100 m is not a "first run complete".
+            if (firstRun) flagsmith?.TrackEvent("first_run_complete", Mathf.RoundToInt(distance));
             trauma = Mathf.Max(trauma, 0.25f);
         }
     }

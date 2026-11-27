@@ -27,3 +27,4 @@ Sample/Assets/Resources/flagsmith.json
 Sample/Assets/Resources/flagsmith.json.meta
 __pycache__/
 *.pyc
+Sample/.utmp/

@@ -133,7 +133,7 @@ Every successful flags response is cached on disk per environment and identity (
 1. The cached response for that identity is used (`Flags.Source == FlagSource.Cache`).
 2. With no cache, flags are empty (`FlagSource.Defaults`) and every read returns your fallback.
 
-A response that isn't JSON (a hotel Wi-Fi login page, for example) counts as a failure and is never cached. While running, `FlagsmithBehaviour` keeps the last good flags rather than replacing them with empty defaults.
+A response that isn't a flags payload counts as a failure and is never cached: a hotel Wi-Fi login page, or a proxy's JSON error such as `{"detail": "Maintenance"}`. While running, `FlagsmithBehaviour` keeps the last good flags rather than replacing them with empty defaults.
 
 ## The Editor window
 

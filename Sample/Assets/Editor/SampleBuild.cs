@@ -12,7 +12,38 @@ public static class SampleBuild
         Build(BuildTarget.WebGL, "Builds/WebGL");
     }
 
-    public static void Android() => Build(BuildTarget.Android, "Builds/FlagRunner.apk");
+    /// <summary>
+    /// Phone builds can't reach "localhost": set FLAGSMITH_API_URL (e.g. http://192.168.1.20:8000/api/v1/) to the
+    /// Mac's LAN address and it is baked into this build only. Plain HTTP is allowed because the demo server has no TLS.
+    /// </summary>
+    public static void Android()
+    {
+        const string config = "Assets/Resources/flagsmith.json";
+        var original = System.IO.File.ReadAllText(config);
+        var url = Environment.GetEnvironmentVariable("FLAGSMITH_API_URL");
+        try
+        {
+            if (!string.IsNullOrEmpty(url))
+            {
+                var c = UnityEngine.JsonUtility.FromJson<Connection>(original);
+                c.api_url = url;
+                System.IO.File.WriteAllText(config, UnityEngine.JsonUtility.ToJson(c, true));
+                AssetDatabase.ImportAsset(config);
+            }
+            PlayerSettings.insecureHttpOption = InsecureHttpOption.AlwaysAllowed; // shortcut: demo only; use HTTPS for a real game
+            PlayerSettings.SetScriptingBackend(UnityEditor.Build.NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
+            PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
+            PlayerSettings.defaultInterfaceOrientation = UIOrientation.LandscapeLeft; // the runner is a landscape game
+            Build(BuildTarget.Android, "Builds/FlagRunner.apk");
+        }
+        finally
+        {
+            System.IO.File.WriteAllText(config, original);
+            AssetDatabase.ImportAsset(config);
+        }
+    }
+
+    [Serializable] class Connection { public string api_url; public string environment_key; }
 
     static void Build(BuildTarget target, string fallback)
     {

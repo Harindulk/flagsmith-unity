@@ -91,6 +91,8 @@ The dashboard then does the statistics. This is the demo's `tutorial_style` expe
 
 ![Flagsmith experiment results: hand variant +15.3% lift over control, 95% chance to be best](docs/media/experiment-results.png)
 
+*Synthetic data, simulated lift. `simulate.py` gives the hand variant a 62% finish rate and text 50% on purpose, to show the results page working. It is not evidence about real players.*
+
 An exposure is recorded only when the flag is on and the identity is enrolled (`Flag.InExperiment`), so players outside the experiment never skew the results. Each player keeps the same ID between sessions (stored in `PlayerPrefs`), so they stay in the same variant. Set your own ID in the component, for example your account system's user ID, when players sign in on several devices.
 
 ## Live Tuning
@@ -108,6 +110,8 @@ cd server
 docker compose up -d          # Flagsmith on http://localhost:8000 (first start takes a minute)
 python3 seed.py               # project, 8 flags, a metric and a running 50/50 experiment
 ```
+
+This setup is for local demos only. It uses the default secrets from Flagsmith's compose file, allows any host, and `seed.py` creates an admin with a fixed password. For a real deployment follow [Flagsmith's self-hosting guide](https://docs.flagsmith.com/deployment-self-hosting) and set your own `DJANGO_SECRET_KEY`, database password, `DJANGO_ALLOWED_HOSTS` and admin account.
 
 Then open `Sample/` in Unity and press Play, or build WebGL with
 `unity build Sample --target WebGL --execute-method SampleBuild.WebGL -o Builds/WebGL`.
@@ -154,9 +158,10 @@ The full guide and API reference are in [Documentation~/index.md](com.flagsmith.
 
 | Platform | Status |
 |---|---|
-| Unity Editor (macOS) | Tested: 17 automated tests, including one against a live self-hosted server (Flagsmith 2.295.2, pinned in `server/docker-compose.yml`) |
+| Unity Editor (macOS) | Tested: 18 automated tests, including one against a live self-hosted server (Flagsmith 2.295.2, pinned in `server/docker-compose.yml`) |
 | WebGL | Tested: Flag Runner build in Chrome, Live Tuning and experiment events confirmed in Flagsmith |
-| Android, iOS, Windows, macOS, Linux players | Uses only `UnityWebRequest` and main-thread code, but not yet tested on devices |
+| Android | IL2CPP ARM64 release build fetched its flags from the self-hosted server on an Android 16 emulator. Not yet tried on a physical phone |
+| iOS, Windows, macOS, Linux players | Uses only `UnityWebRequest` and main-thread code, but not yet tested |
 
 Experimentation was tested against self-hosted Flagsmith. Flagsmith Cloud uses the events endpoint of the official SDKs, which this package has not been tested against yet.
 
