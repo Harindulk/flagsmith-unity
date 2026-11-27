@@ -176,6 +176,7 @@ figcaption { font-size: var(--step-small); color: var(--muted); margin-top: 10px
 }
 .stages { display: grid; grid-template-columns: 1fr 1fr; min-height: 88svh; }
 .stages .left, .stages .right { min-width: 0; } /* a wide code block must scroll inside itself, not widen the page */
+.stages .right { grid-template-columns: minmax(0, 1fr); }
 .stages .left { background: var(--surface); padding: clamp(40px, 5vw, 72px) var(--m) 180px; position: relative; }
 .stages .right { background: var(--stage); display: grid; place-items: center; padding: 48px var(--m) 180px; color: var(--stage-ink); }
 .stages h2 { font-size: clamp(2.5rem, 1.2rem + 3.4vw, 4.75rem); max-width: 10ch; transition: opacity .2s; }
