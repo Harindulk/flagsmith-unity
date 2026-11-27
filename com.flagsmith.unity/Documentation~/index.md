@@ -14,6 +14,7 @@ Version 0.1.0.
 - [Security](#security)
 - [API reference](#api-reference)
 - [Troubleshooting](#troubleshooting)
+- [Set up with an AI coding agent](#set-up-with-an-ai-coding-agent)
 - [Run the demo](#run-the-demo)
 
 ## Getting started
@@ -285,6 +286,40 @@ For tests, pass your own `ITransport` (see `FakeTransport` in the package tests)
 | Values change in the dashboard but not in the game | Refresh Seconds is 0 or large, or you're editing a different environment |
 | Editor window: 401 or 403 | The admin token is wrong, or it's a user token used with the `Api-Key` scheme. Organisation keys contain a dot; user tokens don't |
 | WebGL: requests blocked | The server must allow CORS for the game's origin and the `X-Environment-Key` header. Flagsmith Cloud and the default self-hosted image do |
+
+## Set up with an AI coding agent
+
+Coding agents such as Claude Code, Codex, Cursor and Gemini CLI can do the whole setup for you: install the package, create the flags with the [Flagsmith CLI](https://github.com/Flagsmith/flagsmith-cli), bind your fields, and later run an A/B test and ship the winner.
+
+### Install the Agent Skill
+
+The repository ships an [Agent Skill](https://agentskills.io) in `skills/flagsmith-unity`. Install it into your project with:
+
+```sh
+npx skills add Harindulk/flagsmith-unity
+```
+
+Or copy the `skills/flagsmith-unity` folder into your agent's skills folder (for Claude Code, `.claude/skills/`). Then ask in plain words, for example "Set up Flagsmith in this Unity game so I can tune it live" or "A/B test the tutorial and ship the winner".
+
+### Or paste this prompt
+
+Agents without skill support can follow the same steps from a prompt:
+
+```text
+Add Flagsmith to this Unity project with the Flagsmith for Unity package.
+Follow https://raw.githubusercontent.com/Harindulk/flagsmith-unity/main/skills/flagsmith-unity/references/setup.md step by step.
+Use my Development environment, show me the flags you want to create and wait for my OK,
+and never put a server-side key, Master API key or token in the project.
+```
+
+### What the agent will and won't do
+
+- It reads first (`flagsmith auth status`, `flagsmith config`) and tells you which project and environment it will change.
+- Every write waits for your OK. The experiment script refuses to change anything until it is re-run with your approval, and an environment named like production needs its exact name typed out.
+- Only the client-side environment key goes into the game. Credentials stay in the CLI's keyring or your shell.
+- It never deletes features, segments or experiments unless you ask for that exact deletion.
+
+The docs site also serves [llms.txt](https://harindulk.github.io/flagsmith-unity/llms.txt) and [llms-full.txt](https://harindulk.github.io/flagsmith-unity/llms-full.txt), so an agent can read the whole guide in one request.
 
 ## Run the demo
 

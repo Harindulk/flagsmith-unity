@@ -73,6 +73,16 @@ Prefer plain calls? `flagsmith.Flags.GetValue("run_speed", 7f)` and `flagsmith.F
 
 Package Manager also offers a **Quickstart** sample (select the package, then Samples > Import).
 
+### Or let your coding agent do it
+
+The repo ships an [Agent Skill](skills/flagsmith-unity/SKILL.md) for Claude Code, Codex, Cursor and other agents. It uses the [Flagsmith CLI](https://github.com/Flagsmith/flagsmith-cli) to create flags and experiments, edits your C# to bind fields, and waits for your OK before every change. It stays out of production unless you name the environment.
+
+```sh
+npx skills add Harindulk/flagsmith-unity
+```
+
+Then ask: *"Set up Flagsmith in this Unity game so I can tune it live"*, or later *"A/B test the tutorial and ship the winner"*. Agents without skills can follow the [setup steps](skills/flagsmith-unity/references/setup.md) from a pasted prompt; see [the guide](com.flagsmith.unity/Documentation~/index.md#set-up-with-an-ai-coding-agent).
+
 ## A/B testing with Flagsmith Experimentation
 
 Create a multivariate flag, a metric and an experiment in the Flagsmith dashboard, then:
@@ -177,6 +187,8 @@ Experimentation was tested against self-hosted Flagsmith. Flagsmith Cloud uses t
 com.flagsmith.unity/   the Unity package (Runtime, Editor, Tests, Samples~, Documentation~)
 Sample/                Unity project with the Flag Runner demo
 server/                docker-compose for self-hosted Flagsmith and the seed script
+skills/                Agent Skill for coding agents (setup and A/B tests through the Flagsmith CLI)
+site/                  the docs site and its in-browser playground
 ```
 
 ## Contributing

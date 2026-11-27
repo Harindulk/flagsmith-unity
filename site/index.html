@@ -185,7 +185,7 @@ flagsmith.TrackEvent(<span class="tok-s">"first_run_complete"</span>);</code></p
 
 <section class="wrap gapped" aria-labelledby="start-h">
   <div class="start-head reveal">
-    <h2 id="start-h"><span class="soft">Five steps</span>from install to A/B test</h2>
+    <h2 id="start-h"><span class="soft">From install</span>to a shipped A/B test</h2>
     <a class="btn ink" href="docs/">Full guide</a>
   </div>
   <div class="tabs">
@@ -195,6 +195,7 @@ flagsmith.TrackEvent(<span class="tok-s">"first_run_complete"</span>);</code></p
       <button role="tab" id="t-live" aria-controls="p-live" aria-selected="false" tabindex="-1">Live tuning<small>No rebuilds</small></button>
       <button role="tab" id="t-ab" aria-controls="p-ab" aria-selected="false" tabindex="-1">Experiment<small>Two calls</small></button>
       <button role="tab" id="t-self" aria-controls="p-self" aria-selected="false" tabindex="-1">Self-host<small>Two commands</small></button>
+      <button role="tab" id="t-agent" aria-controls="p-agent" aria-selected="false" tabindex="-1">With an AI agent<small>One sentence</small></button>
     </div>
     <div class="bands" role="tabpanel" id="p-install" aria-labelledby="t-install">
       <div class="band"><div><h3>Add the package</h3><p>Package Manager &gt; + &gt; Install package from git URL. Unity 6 or newer.</p></div><pre><code>https://github.com/Harindulk/flagsmith-unity.git?path=/com.flagsmith.unity</code></pre></div>
@@ -223,6 +224,12 @@ flagsmith.TrackEvent(<span class="tok-s">"first_run_complete"</span>);</code></p
       <div class="band"><div><h3>Start Flagsmith</h3><p>Self-hosted 2.295.2 with Experimentation on. Local demo settings only.</p></div><pre><code>cd server &amp;&amp; docker compose up -d</code></pre></div>
       <div class="band"><div><h3>Seed the demo</h3><p>Project, eight flags, a metric and a running 50/50 experiment.</p></div><pre><code>python3 seed.py</code></pre></div>
       <div class="band"><div><h3>Play and tune</h3><p>Open Sample/ in Unity, press Play, then run the scripted demo.</p></div><pre><code>python3 demo.py</code></pre></div>
+    </div>
+    <div class="bands" role="tabpanel" id="p-agent" aria-labelledby="t-agent" hidden>
+      <div class="band"><div><h3>Add the Agent Skill</h3><p>Works with Claude Code, Codex, Cursor and other agents that load Agent Skills.</p></div><pre><code>npx skills add Harindulk/flagsmith-unity</code></pre></div>
+      <div class="band"><div><h3>Ask for the job</h3><p>It installs the package, creates the flags with the Flagsmith CLI and binds your fields. Every write waits for your OK.</p></div><pre><code>Set up Flagsmith in this Unity game
+so I can tune it live.</code></pre></div>
+      <div class="band"><div><h3>Then run an experiment</h3><p>It creates the flag, metric and experiment, wires the two calls, reads the result and ships the winner.</p></div><pre><code>A/B test the tutorial and ship the winner.</code></pre></div>
     </div>
   </div>
 </section>

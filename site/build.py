@@ -126,7 +126,30 @@ def main():
         body = re.sub(r'href="#([^"]+)"', anchor, body)
         body = body.replace("<img ", '<img loading="lazy" ')
         (OUT / "docs" / p["file"]).write_text(page_html(p, pages, body), encoding="utf-8")
+    write_llms(pages)
     print(f"built {len(pages)} docs pages into {OUT.relative_to(ROOT)}/")
+
+
+def write_llms(pages):
+    """llms.txt (an index for agents) and llms-full.txt (the whole guide plus the Agent Skill in one file)."""
+    site = "https://harindulk.github.io/flagsmith-unity/"
+    lines = ["# Flagsmith for Unity", "",
+             "> Open-source Unity package for Flagsmith: feature flags, remote config, live tuning and A/B tests "
+             "(Flagsmith Experimentation) for Unity 6+ games, WebGL included. MIT licensed, community-made.", "",
+             "Install from git URL in Unity Package Manager: "
+             "https://github.com/Harindulk/flagsmith-unity.git?path=/com.flagsmith.unity", "",
+             "## Docs", ""]
+    lines += [f"- [{p['title']}]({site}docs/{p['file']})" for p in pages]
+    lines += ["", "## For coding agents", "",
+              "- [Agent Skill: set up Flagsmith or run an A/B test in a Unity project]"
+              "(https://github.com/Harindulk/flagsmith-unity/tree/main/skills/flagsmith-unity)",
+              f"- [Everything in one file]({site}llms-full.txt)", ""]
+    (OUT / "llms.txt").write_text("\n".join(lines), encoding="utf-8")
+    skill = ROOT / "skills" / "flagsmith-unity"
+    parts = [GUIDE.read_text(encoding="utf-8")]
+    for f in ["SKILL.md", "references/setup.md", "references/experiment.md"]:
+        parts.append(f"\n\n---\n\n<!-- skills/flagsmith-unity/{f} -->\n\n" + (skill / f).read_text(encoding="utf-8"))
+    (OUT / "llms-full.txt").write_text("".join(parts), encoding="utf-8")
 
 
 if __name__ == "__main__":
