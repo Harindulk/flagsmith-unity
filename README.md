@@ -181,6 +181,14 @@ What to try while it runs:
 | `double_jump` | on | A second jump in the air |
 | `tutorial_style` | experiment | Half of players see text, half see a tap hint; reaching 100 m sends `first_run_complete` |
 
+To give one player a different version, use the player ID shown at the bottom of the game's panel. In the dashboard, open **Identities**, pick that player and override a flag. With the [Flagsmith CLI](https://github.com/Flagsmith/flagsmith-cli) it is one command:
+
+```sh
+flagsmith flag update run_speed --value 11 --identifier player-1a8a76fb7ee9
+```
+
+Only that player's game changes, on its next refresh. `flagsmith flag delete run_speed --identifier player-1a8a76fb7ee9` removes the override.
+
 The panel in the corner shows the live values and highlights the ones that just changed. `seed.py` prints the dashboard login, and it writes the connection details the sample needs into `Sample/Assets/Resources/flagsmith.json`, which git ignores.
 
 ## How it works
