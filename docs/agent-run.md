@@ -15,6 +15,8 @@ This is the record of a coding agent using the [Agent Skill](../skills/flagsmith
 
 > Our tutorial_style A/B test in Flagsmith has been running. We agreed this decision rule before starting: ship a variant when it has at least a 95% chance to be best and every arm has at least 200 players. Check the experiment against that rule. If it passes, ship the winner; you have my OK to do that in the Development environment. Tell me the numbers you based the decision on.
 
+A note on "before starting" in that prompt: the rule was fixed after a first batch of about 400 simulated players and before the second batch that decided it, as the [README](../README.md#the-demo-experiment) says. The prompt's wording is looser than that.
+
 ## What the agent did
 
 **1. Looked at where it was.** It loaded the skill, read `references/experiment.md`, and ran:
@@ -98,7 +100,7 @@ Both refusals are covered by [`tests/test_scripts.py`](../tests/test_scripts.py)
 
 ## A run where the client asks a person
 
-The judges asked to see the approval as a live prompt, so on 28 November 2026 the agent was run again with a hard stop outside itself. Claude Code's `--permission-prompt-tool` sent every command that needed permission to a small tool ([`docs/approval/approval_server.py`](approval/approval_server.py)). Read-only commands pass by rule. A command that carries `FLAGSMITH_YES=1` opens a dialog on the Mac and waits for a click. Same setup as above otherwise: Claude Code headless, `claude-sonnet-5-5`, the skill and the Flagsmith CLI. To use the tool yourself, name it in an MCP config file and start Claude Code with `--mcp-config <that file> --permission-prompt-tool mcp__approval__approve`. The dialog is macOS only.
+To show the approval as a live prompt, the agent was run again on 28 November 2026 with a hard stop outside itself. Claude Code's `--permission-prompt-tool` sent every command that needed permission to a small tool ([`docs/approval/approval_server.py`](approval/approval_server.py)). Read-only commands pass by rule. A command that carries `FLAGSMITH_YES=1` opens a dialog on the Mac and waits for a click. Same setup as above otherwise: Claude Code headless, `claude-sonnet-5-5`, the skill and the Flagsmith CLI. To use the tool yourself, name it in an MCP config file and start Claude Code with `--mcp-config <that file> --permission-prompt-tool mcp__approval__approve`. The dialog is macOS only.
 
 The prompt:
 

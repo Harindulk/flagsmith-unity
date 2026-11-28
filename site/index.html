@@ -98,7 +98,7 @@
   <div class="why reveal">
     <div class="why-text">
       <h2 id="why-h">Flagsmith has no Unity SDK.</h2>
-      <p class="first">Its FAQ points Unity developers to the .NET SDK. That SDK polls and sends events with <code>System.Threading.Timer</code>, <code>Task.Run</code> and <code>Task.Delay</code>, and none of those run in a WebGL build.</p>
+      <p class="first">Its FAQ points Unity developers to the .NET SDK. That SDK polls and sends events with <code>System.Threading.Timer</code>, <code>Task.Run</code> and <code>Task.Delay</code>, and Unity's WebGL player has no threads for them to run on. That comes from reading the SDK's source; we have not run it in a WebGL build.</p>
       <p>The Flagsmith team's own "Unity SDK" issue, opened in March 2024, was closed as not planned in November 2026. Firebase Remote Config, Statsig, ConfigCat and Unity's Remote Config all support Unity.</p>
       <p>Flagsmith for Unity runs on Unity's main thread with <code>UnityWebRequest</code>, caches the last good flags on disk, and speaks Flagsmith's new Experimentation API. <a href="https://github.com/Flagsmith/flagsmith/issues/3623">Issue #3623</a> · <a href="https://docs.flagsmith.com/support/faq/sdks-implementation">the FAQ</a></p>
     </div>
@@ -245,7 +245,7 @@ flagsmith.TrackEvent(<span class="tok-s">"first_run_complete"</span>);</code></p
       <div class="band"><div><h3>Add the Agent Skill</h3><p>Works with Claude Code, Codex, Cursor and other agents that load Agent Skills.</p></div><pre><code>npx skills add Harindulk/flagsmith-unity</code></pre></div>
       <div class="band"><div><h3>Ask for the job</h3><p>It installs the package, creates the flags with the Flagsmith CLI and binds your fields. Every write waits for your OK.</p></div><pre><code>Set up Flagsmith in this Unity game
 so I can tune it live.</code></pre></div>
-      <div class="band"><div><h3>Then run an experiment</h3><p>It creates the flag, metric and experiment, wires the two calls, reads the result and ships the winner.</p></div><pre><code>A/B test the tutorial and ship the winner.</code></pre></div>
+      <div class="band"><div><h3>Then run an experiment</h3><p>The skill covers creating the flag, metric and experiment, wiring the two calls, reading the result and shipping the winner. The recorded runs cover setup and the check-and-ship half.</p></div><pre><code>A/B test the tutorial and ship the winner.</code></pre></div>
     </div>
   </div>
 </section>
