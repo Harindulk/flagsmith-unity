@@ -12,6 +12,7 @@
   --accent: #ffb020;
   --accent-ink: #141721;
   --spike: #e5484d;
+  --sky: #c3e3ff;
   --step-small: clamp(0.8125rem, 0.79rem + 0.1vw, 0.875rem);
   --step-body: clamp(1.0625rem, 1rem + 0.25vw, 1.1875rem);
   --step-lead: clamp(1.25rem, 1.1rem + 0.7vw, 1.625rem);
@@ -24,6 +25,7 @@
   --code-bg: #141721;
   --code-ink: #e8eaf2;
 }
+html.winter { --sky: #b4d2ff; }
 *, *::before, *::after { box-sizing: border-box; }
 html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
 body {
@@ -70,7 +72,8 @@ pre { margin: 0; background: var(--code-bg); color: var(--code-ink); padding: 20
 .bar nav a:hover, .bar nav a[aria-current] { text-decoration: underline; }
 @media (max-width: 720px) { .bar nav .hide-s { display: none; } .bar nav { gap: 18px; } }
 
-/* Hero */
+/* Hero: the game's own sky, and its character running along the top of the stage */
+.home .bar, .hero { background: var(--sky); transition: background-color .6s var(--ease); }
 .hero { padding: clamp(24px, 4vw, 56px) var(--m) clamp(64px, 8vw, 120px); }
 .hero-head { display: grid; grid-template-columns: repeat(12, minmax(0, 1fr)); gap: var(--gap); align-items: end; }
 .hero h1 { grid-column: 1 / span 7; font-size: var(--step-display); }
@@ -81,19 +84,37 @@ pre { margin: 0; background: var(--code-bg); color: var(--code-ink); padding: 20
 .hero-side .acts { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; }
 @media (max-width: 900px) { .hero h1, .hero-side { grid-column: 1 / -1; } }
 
-.play { margin-top: clamp(32px, 4vw, 56px); display: grid; grid-template-columns: minmax(0, 8fr) minmax(300px, 4fr); gap: 8px; background: var(--stage); padding: 8px; border-radius: calc(var(--r) + 4px); }
+.turf {
+  position: relative; height: 36px; margin-top: clamp(96px, 9vw, 132px); container-type: inline-size; overflow-x: clip;
+  background: url("art/terrain_grass_block_top.svg") 0 0 / 36px 36px repeat-x; border-radius: calc(var(--r) + 4px) calc(var(--r) + 4px) 0 0;
+}
+html.winter .turf { background-image: url("art/terrain_snow_block_top.svg"); }
+.runner { position: absolute; left: 0; bottom: 100%; width: clamp(64px, 7vw, 96px); aspect-ratio: 1; margin-bottom: -4%; animation: run 10s linear infinite; }
+.runner .hop { display: block; position: relative; height: 100%; }
+.runner img { position: absolute; inset: 0; width: 100%; height: 100%; animation: step .36s steps(1) infinite; }
+.runner img:first-child { animation-delay: -.18s; }
+.runner.hopping .hop { animation: hop .6s var(--ease); }
+@keyframes run { from { transform: translateX(-100%); } to { transform: translateX(100cqw); } }
+@keyframes step { 0% { opacity: 0; } 50%, 100% { opacity: 1; } }
+@keyframes hop { 40% { transform: translateY(-70%) rotate(-10deg); } }
+.play { display: grid; grid-template-columns: minmax(0, 8fr) minmax(300px, 4fr); gap: 8px; background: var(--stage); padding: 8px; border-radius: 0 0 calc(var(--r) + 4px) calc(var(--r) + 4px); }
 .play-game { position: relative; aspect-ratio: 16 / 10; background: #141721; border-radius: var(--r); overflow: hidden; }
 .play-game iframe { width: 100%; height: 100%; border: 0; }
 .play-game .start {
   position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 18px; text-align: center; color: var(--stage-ink);
   background: #141721 url("../media/flag-runner.png") center / cover no-repeat;
 }
-.play-game .start::before { content: ""; position: absolute; inset: 0; background: rgba(20, 23, 33, .84); }
-.play-game .start > * { position: relative; }
-.play-game .start p { color: var(--stage-muted); font-size: var(--step-small); }
+.play-game .start .btn { min-height: 64px; padding: 0 34px; font-size: var(--step-lead); }
+.play-game .start p { background: var(--stage); color: var(--stage-ink); font-size: var(--step-small); padding: 6px 12px; border-radius: var(--r); margin-inline: 12px; }
 .play-note { grid-column: 1 / -1; color: var(--stage-muted); font-size: var(--step-small); padding: 6px 8px 4px; display: flex; flex-wrap: wrap; gap: 6px 24px; justify-content: space-between; }
+.play-note span { max-width: 75ch; }
 .play-note b { color: var(--stage-ink); font-weight: 500; }
-@media (max-width: 980px) { .play { grid-template-columns: 1fr; } }
+/* One column: the game stays in view while you work the panel under it (sticky needs a block parent, not a grid area). */
+@media (max-width: 980px) {
+  .play { display: block; }
+  .play > * + * { margin-top: 8px; }
+}
+@media (max-width: 980px) and (min-height: 560px) { .play-game { position: sticky; top: 8px; z-index: 3; } }
 
 /* The Flagsmith-style panel (a product fragment: its own conventions apply inside) */
 .panel { background: #1b1f2d; color: var(--stage-ink); border-radius: var(--r); padding: 6px 0; font-size: 14px; display: flex; flex-direction: column; min-width: 0; }
@@ -109,13 +130,19 @@ pre { margin: 0; background: var(--code-bg); color: var(--code-ink); padding: 20
 .switch { position: relative; width: 44px; height: 26px; border-radius: 13px; border: 0; padding: 0; cursor: pointer; background: #3a4058; transition: background-color .2s; }
 .switch::after { content: ""; position: absolute; top: 3px; left: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; transition: transform .2s var(--ease); }
 .switch[aria-checked=true] { background: var(--accent); }
+.switch:active::after { width: 24px; }
+.switch[aria-checked=true]:active::after { transform: translateX(14px); }
 .switch[aria-checked=true]::after { transform: translateX(18px); }
-.swatches { display: flex; gap: 8px; }
-.swatches button { width: 26px; height: 26px; border-radius: 4px; border: 2px solid transparent; cursor: pointer; padding: 0; transition: transform .12s; }
-.swatches button:hover { transform: scale(1.1); }
-.swatches button[aria-pressed=true] { border-color: #fff; }
+.swatches { grid-column: 1 / -1; display: flex; gap: 6px; }
+.swatches button { flex: 1; max-width: 56px; aspect-ratio: 1; border-radius: var(--r); border: 2px solid transparent; background: #262b3d; cursor: pointer; padding: 2px; transition: transform .12s, background-color .15s; }
+.swatches img { width: 100%; }
+.swatches button:hover { background: #3a4058; }
+.swatches button:active { transform: scale(.94); }
+.swatches button[aria-pressed=true] { border-color: var(--accent); background: #3a4058; }
 .seg { display: inline-flex; background: #262b3d; border-radius: 4px; padding: 2px; }
-.seg button { background: none; border: 0; color: var(--stage-muted); font: 500 13px/1 inherit; font-family: inherit; padding: 6px 10px; border-radius: 3px; cursor: pointer; }
+.seg button { background: none; border: 0; color: var(--stage-muted); font: 500 13px/1 inherit; font-family: inherit; padding: 6px 10px; border-radius: 3px; cursor: pointer; display: inline-flex; align-items: center; gap: 5px; }
+.seg button:hover { color: var(--stage-ink); }
+.seg button:active { transform: scale(.96); }
 .seg button[aria-pressed=true] { background: var(--accent); color: var(--accent-ink); }
 .feed { margin-top: auto; border-top: 1px solid #262b3d; /* taste-skill-ignore: data-ui fragment */ padding: 10px 16px 6px; }
 .feed h3 { font-size: 13px; letter-spacing: 0; font-weight: 600; color: var(--stage-muted); line-height: 1.4; }
@@ -145,6 +172,10 @@ figcaption { font-size: var(--step-small); color: var(--muted); margin-top: 10px
 .kill { min-height: 92svh; overflow: hidden; background: var(--stage); color: var(--stage-ink); padding: clamp(48px, 6vw, 88px) var(--m); transition: background-color .45s var(--ease), color .45s; display: grid; align-content: start; }
 .kill.off { background: var(--accent); color: var(--accent-ink); }
 .kill h2 { font-size: var(--step-head); max-width: 14ch; }
+.k-wall { display: flex; margin-top: clamp(24px, 3.5vw, 44px); }
+.k-wall img { width: clamp(56px, 8vw, 120px); transition: transform .5s var(--ease), opacity .35s; }
+.k-wall img + img { transition-delay: 70ms; }
+.kill.off .k-wall img { transform: scale(.2) rotate(50deg); opacity: 0; }
 .kill p { margin-top: 20px; max-width: 40ch; font-size: var(--step-body); }
 .kill .k-sub { color: var(--stage-muted); transition: color .45s; }
 .kill.off .k-sub { color: #3b2a05; }
@@ -295,6 +326,9 @@ figcaption { font-size: var(--step-small); color: var(--muted); margin-top: 10px
   html { scroll-behavior: auto; }
   .js .reveal > *, .js .hero h1 .line > span, .js .hero-side { opacity: 1 !important; transform: none !important; animation: none !important; transition: none !important; }
   .row.changed, .feed li { animation: none; }
+  .runner { animation: none; transform: translateX(12cqw); }
+  .runner img { animation: none; } .runner img + img { display: none; }
+  .runner.hopping .hop { animation: none; }
 }
 
 /* Docs pages */

@@ -230,6 +230,7 @@ public sealed class FlagRunner : MonoBehaviour
         var pressed = Input.GetKeyDown(KeyCode.Space)
                       || Input.GetMouseButtonDown(0);
         if (Input.GetKeyDown(KeyCode.A)) autoplay = !autoplay;
+        else if (autoplay && pressed) autoplay = false; // a real player's first tap takes over from the bot
         if (autoplay)
             pressed |= state == State.Ready || (state == State.Running && AutoJump())
                        || (state == State.Dead && Time.unscaledTime - deadAt > 1.2f);
@@ -275,6 +276,9 @@ public sealed class FlagRunner : MonoBehaviour
     {
         state = State.Running;
         runs++;
+        // Autoplay is a bot, not a player: its runs never enter the experiment and never use up the player's first run.
+        firstRun = false;
+        if (autoplay) return;
         // The metric is "finished the very first run", so remember (per player, across sessions) that it has started.
         var firstRunKey = "flagrunner.first_run_started." + flagsmith?.Identifier;
         firstRun = PlayerPrefs.GetInt(firstRunKey, 0) == 0;
@@ -283,8 +287,7 @@ public sealed class FlagRunner : MonoBehaviour
         // Count the exposure only if the tutorial on screen is the variant Flagsmith served this player
         // (not the offline default), so the experiment never credits a variant nobody saw.
         var served = flagsmith?.Flags.Get("tutorial_style");
-        // Autoplay is a bot, not a player: its runs never enter the experiment.
-        if (!autoplay && served != null && served.Value == tutorial) flagsmith.GetExperimentFlag("tutorial_style");
+        if (served != null && served.Value == tutorial) flagsmith.GetExperimentFlag("tutorial_style");
     }
 
     void Jump()
@@ -347,7 +350,7 @@ public sealed class FlagRunner : MonoBehaviour
         {
             goalSent = true;
             // Only the player's very first run counts: a later run reaching 100 m is not a "first run complete".
-            if (firstRun && !autoplay) flagsmith?.TrackEvent("first_run_complete", Mathf.RoundToInt(distance));
+            if (firstRun) flagsmith?.TrackEvent("first_run_complete", Mathf.RoundToInt(distance));
             trauma = Mathf.Max(trauma, 0.25f);
             StartCoroutine(Burst(player.position, Art("star"), 12, 0.5f));
         }
@@ -532,12 +535,13 @@ public sealed class FlagRunner : MonoBehaviour
         }
         if (state == State.Dead && Time.unscaledTime - deadAt > 0.6f)
             Outlined(new Rect(0, Screen.height * 0.4f, Screen.width, 60 * u), "Tap to run again", big, u);
-        if (goalSent && distance < GoalMeters + 15f)
-            Outlined(new Rect(0, Screen.height * 0.18f, Screen.width, 60 * u), "100 m! First run complete", big, u);
+        // The bot's runs are not anyone's first run, so autoplay shows no banner.
+        if (goalSent && !autoplay && distance < GoalMeters + 15f)
+            Outlined(new Rect(0, Screen.height * 0.18f, Screen.width, 60 * u), firstRun ? "100 m! First run complete" : "100 m!", big, u);
 
         DrawFlagPanel(u);
         DrawToast(u);
-        if (autoplay) Outlined(new Rect(24 * u, 58 * u, 300 * u, 30 * u), "AUTOPLAY (A)", small, u);
+        if (autoplay) Outlined(new Rect(24 * u, 58 * u, 300 * u, 30 * u), "AUTOPLAY: tap or Space to play", small, u);
         if (setupError != null) Outlined(new Rect(24 * u, Screen.height - 40 * u, Screen.width, 30 * u), setupError, small, u);
     }
 

@@ -20,7 +20,7 @@
 <link rel="stylesheet" href="assets/site.css">
 <script>document.documentElement.classList.add('js')</script>
 </head>
-<body>
+<body class="home">
 
 <header class="bar">
   <a class="mark" href="./" aria-label="Flagsmith for Unity, home">
@@ -40,52 +40,57 @@
   <div class="hero-head">
     <h1 id="title"><span class="line"><span>Change the game,</span></span><span class="line"><span>not the build.</span></span></h1>
     <div class="hero-side">
-      <p>Ship one build. Give different players different versions of your game and see in Flagsmith which one does better. An open-source Unity package for Flagsmith, WebGL included.</p>
+      <p>Flip a flag and the game changes while people are playing it. The panel below runs a real Unity build, so try it. An open-source Unity package for Flagsmith, WebGL included.</p>
       <div class="acts">
-        <a class="btn" href="docs/">Read the docs</a>
+        <a class="btn" href="#play" id="hero-play">Play Flag Runner</a>
+        <a class="link" href="docs/">Read the docs</a>
         <a class="link" href="#install">Install from git</a>
       </div>
     </div>
   </div>
 
+  <div class="turf" aria-hidden="true">
+    <span class="runner" id="runner"><span class="hop"><img src="assets/art/character_green_walk_a.svg" alt="" width="128" height="128"><img src="assets/art/character_green_walk_b.svg" alt="" width="128" height="128"></span></span>
+  </div>
   <div class="play" id="play">
     <div class="play-game">
       <div class="start" id="start">
         <button class="btn" type="button" id="load-game">Play Flag Runner</button>
-        <p>Unity WebGL build, 5 MB. It plays itself; Space or tap to jump.</p>
+        <p>Unity WebGL, 5 MB. It plays itself until you tap or press Space.</p>
       </div>
     </div>
 
     <div class="panel" data-ui role="region" aria-label="Flags for this game">
-      <h2>Flags <span>Development</span></h2>
-      <div class="row" data-flag="run_speed"><label for="f-run">run_speed</label><output id="o-run" for="f-run">7</output>
-        <input type="range" id="f-run" min="4" max="12" step="1" value="7"></div>
-      <div class="row" data-flag="gravity_scale"><label for="f-grav">gravity_scale</label><output id="o-grav" for="f-grav">3.2</output>
-        <input type="range" id="f-grav" min="1" max="5" step="0.2" value="3.2"></div>
-      <div class="row" data-flag="player_skin"><span class="name" id="l-color">player_skin</span>
+      <h2>Flags <span>live, no rebuild</span></h2>
+      <div class="row" data-flag="player_skin"><span class="name" id="l-color">player_skin</span><span class="val" id="o-skin">green</span>
         <div class="swatches" role="group" aria-labelledby="l-color">
-          <button type="button" data-skin="green" style="background:#4FD3A0" aria-pressed="true" aria-label="Green"></button>
-          <button type="button" data-skin="pink" style="background:#FF7FA8" aria-pressed="false" aria-label="Pink"></button>
-          <button type="button" data-skin="yellow" style="background:#FFB020" aria-pressed="false" aria-label="Yellow"></button>
-          <button type="button" data-skin="purple" style="background:#B7A6F5" aria-pressed="false" aria-label="Purple"></button>
+          <button type="button" data-skin="green" aria-pressed="true" aria-label="Green"><img src="assets/art/character_green_walk_a.svg" alt="" width="40" height="40"></button>
+          <button type="button" data-skin="pink" aria-pressed="false" aria-label="Pink"><img src="assets/art/character_pink_walk_a.svg" alt="" width="40" height="40"></button>
+          <button type="button" data-skin="yellow" aria-pressed="false" aria-label="Yellow"><img src="assets/art/character_yellow_walk_a.svg" alt="" width="40" height="40"></button>
+          <button type="button" data-skin="purple" aria-pressed="false" aria-label="Purple"><img src="assets/art/character_purple_walk_a.svg" alt="" width="40" height="40"></button>
+          <button type="button" data-skin="beige" aria-pressed="false" aria-label="Beige"><img src="assets/art/character_beige_walk_a.svg" alt="" width="40" height="40"></button>
         </div></div>
-      <div class="row" data-flag="coin_value"><span class="name" id="l-coin">coin_value</span>
-        <div class="seg" role="group" aria-labelledby="l-coin">
-          <button type="button" data-coin="1" aria-pressed="true">1</button><button type="button" data-coin="5" aria-pressed="false">5</button><button type="button" data-coin="10" aria-pressed="false">10</button>
-        </div></div>
-      <div class="row" data-flag="double_jump"><span class="name" id="l-dj">double_jump</span>
-        <button class="switch" type="button" role="switch" aria-checked="false" aria-labelledby="l-dj" data-switch="double_jump"></button></div>
       <div class="row" data-flag="winter_event"><span class="name" id="l-we">winter_event</span>
         <button class="switch" type="button" role="switch" aria-checked="false" aria-labelledby="l-we" data-switch="winter_event"></button></div>
+      <div class="row" data-flag="run_speed"><label for="f-run">run_speed</label><output id="o-run" for="f-run">7</output>
+        <input type="range" id="f-run" min="4" max="12" step="1" value="7"></div>
+      <div class="row" data-flag="coin_value"><span class="name" id="l-coin">coin_value</span>
+        <div class="seg" role="group" aria-labelledby="l-coin">
+          <button type="button" data-coin="1" aria-pressed="true"><img src="assets/art/coin_gold.svg" alt="" width="18" height="18">1</button><button type="button" data-coin="5" aria-pressed="false"><img src="assets/art/gem_blue.svg" alt="" width="18" height="18">5</button><button type="button" data-coin="10" aria-pressed="false"><img src="assets/art/gem_red.svg" alt="" width="18" height="18">10</button>
+        </div></div>
       <div class="row" data-flag="spike_walls"><span class="name" id="l-sw">spike_walls</span>
         <button class="switch" type="button" role="switch" aria-checked="true" aria-labelledby="l-sw" data-switch="spike_walls"></button></div>
+      <div class="row" data-flag="double_jump"><span class="name" id="l-dj">double_jump</span>
+        <button class="switch" type="button" role="switch" aria-checked="false" aria-labelledby="l-dj" data-switch="double_jump"></button></div>
+      <div class="row" data-flag="gravity_scale"><label for="f-grav">gravity_scale</label><output id="o-grav" for="f-grav">3.2</output>
+        <input type="range" id="f-grav" min="1" max="5" step="0.2" value="3.2"></div>
       <div class="feed" aria-live="polite">
         <h3>Events from the game</h3>
-        <ul id="feed"><li><span>Press A in the game to take over. Your first run sends events here.</span></li></ul>
+        <ul id="feed"><li><span>Tap the game to take over. Your first run sends events here.</span></li></ul>
       </div>
     </div>
 
-    <p class="play-note"><span>This is the real package running in WebGL. The page stands in for the Flagsmith server: change a flag and the game picks it up on its next 2-second refresh.</span> <b id="polls">0 requests answered</b></p>
+    <p class="play-note"><span>This is the real package running in WebGL. The page answers for the Flagsmith server, so the panel's flags are yours alone and reach the game on its next 2-second refresh. The tutorial A/B test is real: Flagsmith Cloud picks your hint and counts whether you finish your first run, under a random anonymous id.</span> <b id="polls">0 requests answered</b></p>
   </div>
 </section>
 
@@ -99,7 +104,7 @@
     </div>
     <figure class="why-media">
       <video src="media/live-tuning.mp4" poster="media/flag-runner.png" autoplay muted loop playsinline width="960" height="600" aria-label="Flag Runner changing live while a script edits flags in self-hosted Flagsmith"></video>
-      <figcaption>Flag Runner on self-hosted Flagsmith 2.295.2 while <code>server/demo.py</code> edits flags. Speed, colour, gravity and the spike walls all change mid-run.</figcaption>
+      <figcaption>Flag Runner on self-hosted Flagsmith 2.295.2 while <code>server/demo.py</code> edits flags. Speed, the skin, a winter event and the spike walls all change mid-run.</figcaption>
     </figure>
   </div>
 </section>
@@ -108,6 +113,7 @@
   <h2 id="kill-h">Kill switch: <span id="kill-word">on</span></h2>
   <p>Spike walls broken in production? Turn the flag off and every running copy of the game drops them on its next refresh.</p>
   <p class="k-sub">The store never sees a patch. This switch drives the playground above too.</p>
+  <div class="k-wall" aria-hidden="true"><img src="assets/art/block_spikes.svg" alt="" width="128" height="128" loading="lazy"><img src="assets/art/block_spikes.svg" alt="" width="128" height="128" loading="lazy"></div>
   <div class="big-switch" data-ui>
     <span class="lbl">spike_walls <span id="kill-state">enabled</span></span>
     <button type="button" role="switch" aria-checked="true" aria-label="spike_walls" data-switch="spike_walls"></button>
@@ -121,7 +127,7 @@
     <p id="st-p">In the Flagsmith dashboard, or in Window &gt; Flagsmith inside Unity, run_speed goes from 7 to 11.</p>
   </div>
   <div class="right">
-    <div class="frag" data-stage="0" data-ui><img src="media/dash-features.png" width="1440" height="900" alt="Flagsmith dashboard listing Flag Runner's eight flags with their values" loading="lazy"></div>
+    <div class="frag" data-stage="0" data-ui><img src="media/dash-features.png" width="1440" height="900" alt="Flagsmith dashboard listing Flag Runner's nine flags with their values" loading="lazy"></div>
     <div class="frag" data-stage="1" data-ui hidden><pre><code><span class="tok-c">// every 2 s while tuning, every 60 s in release</span>
 <span class="tok-k">POST</span> /api/v1/identities/
 X-Environment-Key: <span class="tok-s">client key</span>
@@ -175,7 +181,7 @@ flagsmith.TrackEvent(<span class="tok-s">"first_run_complete"</span>);</code></p
       <p><a class="link" href="docs/the-editor-window.html">Editor window guide</a></p>
     </div>
     <figure class="fig framed">
-      <img src="media/editor-per-player.png" width="1120" height="850" alt="The Flagsmith window in the Unity Editor in per-player mode: run_speed and player_color overridden for one player, each with a Clear button" loading="lazy">
+      <img src="media/editor-per-player.png" width="1120" height="850" alt="The Flagsmith window in the Unity Editor in per-player mode: run_speed and player_skin overridden for one player, each with a Clear button" loading="lazy">
       <figcaption>Window &gt; Flagsmith on self-hosted Flagsmith, with two flags overridden for one player.</figcaption>
     </figure>
   </div>
@@ -258,7 +264,7 @@ so I can tune it live.</code></pre></div>
 </main>
 
 <footer class="foot">
-  <div class="stmt"><p>A community package for Flagsmith, MIT licensed. Not an official Flagsmith SDK.</p><small>Made for Flagsmith Toggle Wars, November 2026.</small></div>
+  <div class="stmt"><p>A community package for Flagsmith, MIT licensed. Not an official Flagsmith SDK.</p><small>Made for Flagsmith Toggle Wars, November 2026. Game art from <a href="https://kenney.nl/assets/new-platformer-pack">Kenney's New Platformer Pack</a> (CC0).</small></div>
   <div class="nav"><b>Docs</b><ul><li><a href="docs/">Guide</a></li><li><a href="docs/api-reference.html">API reference</a></li><li><a href="docs/troubleshooting.html">Troubleshooting</a></li><li><a href="https://github.com/Harindulk/flagsmith-unity/blob/main/com.flagsmith.unity/CHANGELOG.md">Changelog</a></li></ul></div>
   <div class="made"><b>Version</b><p>0.1.0<br><small>Unity 6000.0+</small></p></div>
   <div class="repo"><b>Source and issues</b><a href="https://github.com/Harindulk/flagsmith-unity">GitHub repo</a></div>

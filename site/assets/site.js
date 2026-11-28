@@ -26,7 +26,16 @@
   };
 
   const flash = name => { const r = $(`.row[data-flag="${name}"]`); if (!r) return; r.classList.remove('changed'); void r.offsetWidth; r.classList.add('changed'); };
-  const set = (name, value) => { flags[name] = value; flash(name); };
+  // The page's own runner follows the flags too, so a flip shows before the 5 MB game has loaded.
+  const runner = $('#runner');
+  const mirror = name => {
+    if (!runner) return;
+    if (name === 'player_skin') $$('img', runner).forEach((im, i) => { im.src = `assets/art/character_${flags.player_skin}_walk_${'ab'[i]}.svg`; });
+    if (name === 'winter_event') document.documentElement.classList.toggle('winter', flags.winter_event);
+    if (name === 'run_speed') [runner, ...$$('img', runner)].forEach(el => el.getAnimations().forEach(a => { a.playbackRate = flags.run_speed / 7; }));
+    runner.classList.remove('hopping'); void runner.offsetWidth; runner.classList.add('hopping');
+  };
+  const set = (name, value) => { flags[name] = value; flash(name); mirror(name); };
 
   const range = (id, out, name) => {
     const el = $(id); if (!el) return;
@@ -39,6 +48,7 @@
   $$('.swatches button').forEach(b => b.addEventListener('click', () => {
     $$('.swatches button').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
     set('player_skin', b.dataset.skin);
+    $('#o-skin').textContent = b.dataset.skin;
   }));
   $$('.seg button').forEach(b => b.addEventListener('click', () => {
     $$('.seg button').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
@@ -62,9 +72,10 @@
   }));
 
   const load = $('#load-game');
+  const heroPlay = $('#hero-play'); if (heroPlay) heroPlay.addEventListener('click', () => { const l = $('#load-game'); if (l) l.click(); });
   if (load) load.addEventListener('click', () => {
     const frame = document.createElement('iframe');
-    frame.src = 'play/?autoplay';
+    frame.src = 'play/?autoplay' + (new URLSearchParams(location.search).has('cloud') ? '&cloud' : '');
     frame.title = 'Flag Runner, a Unity WebGL game using Flagsmith for Unity';
     frame.allow = 'fullscreen';
     $('#start').replaceWith(frame);

@@ -5,7 +5,12 @@ All notable changes to this package are listed here. The format follows [Keep a 
 ## [Unreleased]
 
 ### Added
+- Flag Runner sample: a character and world (Kenney's New Platformer Pack, CC0), with `player_skin` and `winter_event` flags, a speed trail and gems for higher coin values.
+- The live-server test can run against another server: set `FLAGSMITH_TEST_ENV_KEY` (and `FLAGSMITH_TEST_API_URL` for self-hosted). It passes against Flagsmith Cloud's free plan.
 - Editor window: per-player mode. Enter a player ID (or press Running in Play mode) to list the flags as that player gets them, save an override for that player only, and clear it.
+
+### Fixed
+- Flag Runner sample: an autoplay run no longer uses up the player's first run, so players who watch the bot first still count in the tutorial experiment. A tap or Space takes over from autoplay.
 
 ## [0.1.0] - 2026-11-27
 
