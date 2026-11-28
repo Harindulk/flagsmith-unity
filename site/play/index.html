@@ -33,7 +33,7 @@ const host = (() => { try { return parent !== window && parent.playground ? pare
 // Tuning flags stay on this page, so every visitor has their own panel. Automated browsers (tests, crawlers) never
 // join, and "?cloud" points the page at a separate test environment instead.
 const CLOUD = (() => {
-  const live = /(^|\.)harindu\.dev$|\.github\.io$/.test(location.hostname) && !navigator.webdriver;
+  const live = ['links.harindu.dev', 'harindulk.github.io'].includes(location.hostname) && !navigator.webdriver; // a fork's copy must not add players
   const test = new URLSearchParams(location.search).has('cloud');
   if (!live && !test) return null;
   return { key: test ? '2KSEgoCYijT7kKNk8787hi' : 'C4Ky5T3N8KYSnWzCKcMY4B', flag: null, asked: null };

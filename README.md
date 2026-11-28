@@ -31,7 +31,7 @@ Built for [Flagsmith Toggle Wars](https://www.wemakedevs.org/hackathons/flagsmit
 
 | Track | What it asks for | Where to see it |
 |---|---|---|
-| 1. Experimentation | A clear question, versions behind a flag, a metric from events, results you can explain | [The tutorial experiment](#ab-testing-with-flagsmith-experimentation): question, rule set in advance, result and the decision, on simulated players. The [same test on real players](docs/live-experiment.md) runs on the hosted demo |
+| 1. Experimentation | A clear question, versions behind a flag, a metric from events, results you can explain | [The tutorial experiment](#ab-testing-with-flagsmith-experimentation): question, a rule fixed before the deciding batch of players, result and the decision, on simulated players. The [same test on real players](docs/live-experiment.md) runs on the hosted demo |
 | 2. Agents | Flagsmith CLI, saves real time, a human approves changes, clear output | [One recorded agent run](docs/agent-run.md): 20 seconds from prompt to shipped winner (approval was given in the prompt), with the commands it ran and their output. A [second run](docs/agent-run.md#a-run-where-the-client-asks-a-person) puts the approval in a dialog outside the agent: nobody approved, so nothing changed |
 | 3. Open source | Self-hosted Flagsmith, integrations and developer tools, easy to reuse | [`server/`](server/) (pinned Docker Compose and a seed script), the [package](com.flagsmith.unity/) with its Editor window, and a [one-URL install](#install) |
 | 4. Agent Skill | Completes the whole job, token efficiency, creative use of the CLI, safety around production | [`skills/flagsmith-unity`](skills/flagsmith-unity/SKILL.md) and the [token counts](docs/agent-run.md) for its demo run: 1,522 output tokens |
@@ -62,7 +62,7 @@ Or add it to `Packages/manifest.json`:
 "com.flagsmith.unity": "https://github.com/Harindulk/flagsmith-unity.git?path=/com.flagsmith.unity"
 ```
 
-Add `#v0.1.0` to the end of the URL to stay on a fixed release. Releases are listed on the [releases page](https://github.com/Harindulk/flagsmith-unity/releases).
+Add `#v0.1.0` to the end of the URL to stay on a fixed release. That release is from 27 November: the Editor window's per-player mode came after it and is on `main` only for now. Releases are listed on the [releases page](https://github.com/Harindulk/flagsmith-unity/releases).
 
 The package depends on `com.unity.nuget.newtonsoft-json`, which Unity installs for you.
 
@@ -143,7 +143,7 @@ The hosted demo runs this experiment for real, on Flagsmith Cloud's free plan. F
 
 A visitor counts once they take over from autoplay and start a run of their own. The bot's runs and automated browsers are left out. The playground build still talks to the page instead of a server, so the page forwards two things to Flagsmith Cloud: the lookup of each visitor's `tutorial_style` (once per page load) and the experiment events. The tuning flags stay on the page, so every visitor has their own panel. The data sent is a random player ID, the variant shown and whether the first run reached 100 m.
 
-The numbers, however small, are in [docs/live-experiment.md](docs/live-experiment.md).
+The numbers, however small, are in [docs/live-experiment.md](docs/live-experiment.md). When this was written the test had just gone live and had no players yet.
 
 An exposure is recorded only when the flag is on and the identity is enrolled (`Flag.InExperiment`), so players outside the experiment never skew the results. Each player keeps the same ID between sessions (stored in `PlayerPrefs`), so they stay in the same variant. Set your own ID in the component, for example your account system's user ID, when players sign in on several devices.
 
