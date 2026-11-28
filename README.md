@@ -36,7 +36,7 @@ Built for [Flagsmith Toggle Wars](https://www.wemakedevs.org/hackathons/flagsmit
 | 3. Open source | Self-hosted Flagsmith, integrations and developer tools, easy to reuse | [`server/`](server/) (pinned Docker Compose and a seed script), the [package](com.flagsmith.unity/) with its Editor window, and a [one-URL install](#install) |
 | 4. Agent Skill | Completes the whole job, token efficiency, creative use of the CLI, safety around production | [`skills/flagsmith-unity`](skills/flagsmith-unity/SKILL.md) and the [token counts](docs/agent-run.md) for its demo run: 1,522 output tokens |
 
-Tests: 26 for the package (run in the Unity Editor, one of them against a live self-hosted server) and 10 for the skill script, site and server helper (run on every push).
+Tests: 26 for the package (run in the Unity Editor, one of them against a live self-hosted server) and 13 for the skill script, site and server helper (run on every push).
 
 ## What you get
 
@@ -95,7 +95,7 @@ Package Manager also offers a **Quickstart** sample (select the package, then Sa
 
 ### Or let your coding agent do it
 
-The repo ships an [Agent Skill](skills/flagsmith-unity/SKILL.md) for Claude Code, Codex, Cursor and other agents. It uses the [Flagsmith CLI](https://github.com/Flagsmith/flagsmith-cli) to create flags and experiments, and edits your C# to bind fields. The skill tells the agent to ask before every change, and its script refuses to write until it is re-run with your approval; on an environment that looks like production it also needs the environment's exact name. The agent sets that approval itself, so for a hard stop add the permission rule from [SKILL.md](skills/flagsmith-unity/SKILL.md), which makes the client ask you.
+The repo ships an [Agent Skill](skills/flagsmith-unity/SKILL.md) for Claude Code, Codex, Cursor and other agents. It uses the [Flagsmith CLI](https://github.com/Flagsmith/flagsmith-cli) to create flags and experiments, and edits your C# to bind fields. The skill tells the agent to ask before every change and to make every Flagsmith change through one script, which refuses to write until it is re-run with your approval; on an environment that looks like production it also needs the environment's exact name. The agent sets that approval itself, so for a hard stop add the permission rule from [SKILL.md](skills/flagsmith-unity/SKILL.md), which makes the client ask you.
 
 ```sh
 npx skills add Harindulk/flagsmith-unity
@@ -187,6 +187,10 @@ To give one player a different version, use the player ID shown at the bottom of
 flagsmith flag update run_speed --value 11 --identifier player-1a8a76fb7ee9
 ```
 
+![Two players on the same build: the right one turns cyan and speeds up after a per-player override in Flagsmith](docs/media/two-players.gif)
+
+*Two browsers running the same WebGL build against self-hosted Flagsmith. Only the player on the right was given an override, first `player_color`, then `run_speed`.*
+
 Only that player's game changes, on its next refresh. `flagsmith flag delete run_speed --identifier player-1a8a76fb7ee9` removes the override.
 
 The panel in the corner shows the live values and highlights the ones that just changed. `seed.py` prints the dashboard login, and it writes the connection details the sample needs into `Sample/Assets/Resources/flagsmith.json`, which git ignores.
@@ -212,7 +216,7 @@ The full guide and API reference are in [Documentation~/index.md](com.flagsmith.
 |---|---|
 | Unity Editor (macOS) | Tested: 26 automated tests, including one against a live self-hosted server (Flagsmith 2.295.2, pinned in `server/docker-compose.yml`) |
 | WebGL | Tested: Flag Runner build in Chrome, Live Tuning and experiment events confirmed in Flagsmith. The hosted playground is a 5 MB download; that build uses WebAssembly 2023 features, so it needs a 2023 or newer browser (Safari 16.4+) |
-| Android | IL2CPP ARM64 release build fetched its flags from the self-hosted server on an Android 16 emulator. Not yet tried on a physical phone |
+| Android | Not verified. An IL2CPP ARM64 build installs and starts on an Android 16 emulator, and an earlier build fetched its flags from the self-hosted server there, but we have not seen the game draw: the emulator hung on our machine with both hardware and software graphics. Not yet tried on a physical phone |
 | iOS, Windows, macOS, Linux players | Uses only `UnityWebRequest` and main-thread code, but not yet tested |
 
 Experimentation was tested against self-hosted Flagsmith. Flagsmith Cloud uses the events endpoint of the official SDKs, which this package has not been tested against yet.

@@ -27,6 +27,8 @@ case "$*" in
   *"config --json --jq .environment.name"*) echo "$FAKE_ENV_NAME" ;;
   *"experiments/?page_size"*) echo "${FAKE_EXPERIMENT-7 running}" ;;
   *"variant list"*) echo 42 ;;
+  *"feature get"*) echo "${FAKE_FEATURE_ID-}" ;;
+  *"results/ --jq"*) jq -c "${@: -1}" "$FAKE_RESULTS" ;;
   *complete/*) cat >> "$FAKE_LOG"; echo '{"status":"completed"}' ;;
 esac
 """
@@ -84,6 +86,35 @@ class ExperimentScript(unittest.TestCase):
         r = self.run_script("ship", "tutorial_style", "hand", FLAGSMITH_YES="1")
         self.assertEqual(r.returncode, 0, r.stderr)
         self.assertIn('{"rollout_decision":"variant","rollout_variant":42}', self.log.read_text())
+
+    def test_flag_writes_need_approval_too(self):
+        for args in (("flag", "run_speed", "7"), ("create", "tutorial_style", "text", "hand", "first_run_complete", "why"), ):
+            r = self.run_script(*args, FAKE_EXPERIMENT="")
+            self.assertEqual(r.returncode, 1, args)
+            self.assertIn("nothing changed", r.stderr)
+        calls = self.log.read_text()
+        for write in ("feature create", "flag update", "variant add", "-X POST"):
+            self.assertNotIn(write, calls)
+
+    def test_flag_creates_a_missing_flag_and_updates_an_existing_one(self):
+        r = self.run_script("flag", "run_speed", "7", FLAGSMITH_YES="1")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("feature create run_speed --value 7 --enabled", self.log.read_text())
+        r = self.run_script("flag", "double_jump", "off", FLAGSMITH_YES="1", FAKE_FEATURE_ID="12")
+        self.assertEqual(r.returncode, 0, r.stderr)
+        self.assertIn("flag update double_jump --disable", self.log.read_text())
+        r = self.run_script("flag", "run_speed", "9", env_name="Production", FLAGSMITH_YES="1", FAKE_FEATURE_ID="12")
+        self.assertEqual(r.returncode, 1)
+        self.assertNotIn("--value 9", self.log.read_text())
+
+    def test_results_are_cut_down_to_what_a_decision_needs(self):
+        r = self.run_script("results", "tutorial_style", FAKE_RESULTS=str(ROOT / "tests" / "fixtures" / "experiment-results.json"))
+        self.assertEqual(r.returncode, 0, r.stderr)
+        out = json.loads(r.stdout)
+        metric = out["metrics"][0]
+        self.assertEqual(metric["players"]["hand"], {"n": 417, "conversions": 268, "rate_pct": 64.3})
+        self.assertEqual(metric["vs_control"]["hand"], {"lift_pct": 19.8, "chance_to_win_pct": 99.7, "interval_pct": [5.9, 33.7], "conclusive": True})
+        self.assertLess(len(r.stdout), (ROOT / "tests" / "fixtures" / "experiment-results.json").stat().st_size / 3)
 
     def test_ship_needs_a_running_experiment(self):
         r = self.run_script("ship", "tutorial_style", "control", FLAGSMITH_YES="1", FAKE_EXPERIMENT="")
