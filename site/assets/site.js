@@ -4,7 +4,7 @@
   const $$ = (s, el = document) => [...el.querySelectorAll(s)];
 
   // ---- Playground: play/index.html reads window.playground to answer the game's Flagsmith requests.
-  const flags = { run_speed: 7, jump_force: 13, gravity_scale: 3.2, coin_value: 1, player_color: '#FFB020', double_jump: false, spike_walls: true };
+  const flags = { run_speed: 7, jump_force: 13, gravity_scale: 3.2, coin_value: 1, player_skin: 'green', double_jump: false, winter_event: false, spike_walls: true };
   let requests = 0;
   const feed = $('#feed');
   window.playground = {
@@ -38,7 +38,7 @@
 
   $$('.swatches button').forEach(b => b.addEventListener('click', () => {
     $$('.swatches button').forEach(o => o.setAttribute('aria-pressed', String(o === b)));
-    set('player_color', b.dataset.color);
+    set('player_skin', b.dataset.skin);
   }));
   $$('.seg button').forEach(b => b.addEventListener('click', () => {
     $$('.seg button').forEach(o => o.setAttribute('aria-pressed', String(o === b)));

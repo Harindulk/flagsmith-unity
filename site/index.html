@@ -62,12 +62,12 @@
         <input type="range" id="f-run" min="4" max="12" step="1" value="7"></div>
       <div class="row" data-flag="gravity_scale"><label for="f-grav">gravity_scale</label><output id="o-grav" for="f-grav">3.2</output>
         <input type="range" id="f-grav" min="1" max="5" step="0.2" value="3.2"></div>
-      <div class="row" data-flag="player_color"><span class="name" id="l-color">player_color</span>
+      <div class="row" data-flag="player_skin"><span class="name" id="l-color">player_skin</span>
         <div class="swatches" role="group" aria-labelledby="l-color">
-          <button type="button" data-color="#FFB020" style="background:#FFB020" aria-pressed="true" aria-label="Amber"></button>
-          <button type="button" data-color="#4DD0E1" style="background:#4DD0E1" aria-pressed="false" aria-label="Cyan"></button>
-          <button type="button" data-color="#FF6B9A" style="background:#FF6B9A" aria-pressed="false" aria-label="Pink"></button>
-          <button type="button" data-color="#9BE15D" style="background:#9BE15D" aria-pressed="false" aria-label="Green"></button>
+          <button type="button" data-skin="green" style="background:#4FD3A0" aria-pressed="true" aria-label="Green"></button>
+          <button type="button" data-skin="pink" style="background:#FF7FA8" aria-pressed="false" aria-label="Pink"></button>
+          <button type="button" data-skin="yellow" style="background:#FFB020" aria-pressed="false" aria-label="Yellow"></button>
+          <button type="button" data-skin="purple" style="background:#B7A6F5" aria-pressed="false" aria-label="Purple"></button>
         </div></div>
       <div class="row" data-flag="coin_value"><span class="name" id="l-coin">coin_value</span>
         <div class="seg" role="group" aria-labelledby="l-coin">
@@ -75,6 +75,8 @@
         </div></div>
       <div class="row" data-flag="double_jump"><span class="name" id="l-dj">double_jump</span>
         <button class="switch" type="button" role="switch" aria-checked="false" aria-labelledby="l-dj" data-switch="double_jump"></button></div>
+      <div class="row" data-flag="winter_event"><span class="name" id="l-we">winter_event</span>
+        <button class="switch" type="button" role="switch" aria-checked="false" aria-labelledby="l-we" data-switch="winter_event"></button></div>
       <div class="row" data-flag="spike_walls"><span class="name" id="l-sw">spike_walls</span>
         <button class="switch" type="button" role="switch" aria-checked="true" aria-labelledby="l-sw" data-switch="spike_walls"></button></div>
       <div class="feed" aria-live="polite">
@@ -230,7 +232,7 @@ flagsmith.TrackEvent(<span class="tok-s">"first_run_complete"</span>);</code></p
     </div>
     <div class="bands" role="tabpanel" id="p-self" aria-labelledby="t-self" hidden>
       <div class="band"><div><h3>Start Flagsmith</h3><p>Self-hosted 2.295.2 with Experimentation on. Local demo settings only.</p></div><pre><code>cd server &amp;&amp; docker compose up -d</code></pre></div>
-      <div class="band"><div><h3>Seed the demo</h3><p>Project, eight flags, a metric and a running 50/50 experiment.</p></div><pre><code>python3 seed.py</code></pre></div>
+      <div class="band"><div><h3>Seed the demo</h3><p>Project, nine flags, a metric and a running 50/50 experiment.</p></div><pre><code>python3 seed.py</code></pre></div>
       <div class="band"><div><h3>Play and tune</h3><p>Open Sample/ in Unity, press Play, then run the scripted demo.</p></div><pre><code>python3 demo.py</code></pre></div>
     </div>
     <div class="bands" role="tabpanel" id="p-agent" aria-labelledby="t-agent" hidden>

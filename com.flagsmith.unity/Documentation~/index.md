@@ -341,7 +341,7 @@ The repository has a self-hosted Flagsmith setup with Experimentation turned on,
 ```sh
 cd server
 docker compose up -d          # Flagsmith on http://localhost:8000 (the first start takes a minute)
-python3 seed.py               # project, 8 flags, a metric and a running 50/50 experiment
+python3 seed.py               # project, 9 flags, a metric and a running 50/50 experiment
 ```
 
 `seed.py` prints the dashboard login and writes the connection details the sample needs into `Sample/Assets/Resources/flagsmith.json`, which git ignores. Open `Sample/` in Unity and press Play.

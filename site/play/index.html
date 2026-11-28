@@ -20,14 +20,14 @@
 // so the real Flagsmith for Unity code runs unchanged and no server is needed. In your game, Flagsmith answers.
 const API = 'https://playground.invalid/api/v1/';
 const fallback = {
-  flags: { run_speed: 7, jump_force: 13, gravity_scale: 3.2, coin_value: 1, player_color: '#FFB020',
-           double_jump: false, spike_walls: true },
+  flags: { run_speed: 7, jump_force: 13, gravity_scale: 3.2, coin_value: 1, player_skin: 'green',
+           double_jump: false, spike_walls: true, winter_event: false },
   onEvents() {}, onRequest() {}
 };
 const host = (() => { try { return parent !== window && parent.playground ? parent.playground : fallback; } catch { return fallback; } })();
 
 function flagsFor(identifier) {
-  const f = host.flags, on = { double_jump: f.double_jump, spike_walls: f.spike_walls };
+  const f = host.flags, on = { double_jump: f.double_jump, spike_walls: f.spike_walls, winter_event: f.winter_event };
   const list = Object.keys(f).map((name, i) => ({
     feature: { id: i + 1, name, type: 'STANDARD' },
     enabled: name in on ? on[name] : true,

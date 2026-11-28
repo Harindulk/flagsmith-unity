@@ -160,7 +160,7 @@ The repository includes a self-hosted Flagsmith setup with Experimentation turne
 ```sh
 cd server
 docker compose up -d          # Flagsmith on http://localhost:8000 (first start takes a minute)
-python3 seed.py               # project, 8 flags, a metric and a running 50/50 experiment
+python3 seed.py               # project, 9 flags, a metric and a running 50/50 experiment
 ```
 
 This setup is for local demos only. It uses the default secrets from Flagsmith's compose file, allows any host, and `seed.py` creates an admin with a fixed password. For a real deployment follow [Flagsmith's self-hosting guide](https://docs.flagsmith.com/deployment-self-hosting) and set your own `DJANGO_SECRET_KEY`, database password, `DJANGO_ALLOWED_HOSTS` and admin account.
@@ -182,10 +182,12 @@ What to try while it runs:
 
 | Flag | Try | What happens |
 |---|---|---|
-| `run_speed` | 7 → 12 | The run speeds up within ~2 seconds |
+| `run_speed` | 7 → 11 | The run speeds up within ~2 seconds, and from 9.5 up the astronaut leaves a trail |
 | `gravity_scale`, `jump_force` | any number | Jumps feel floatier or heavier |
-| `player_color` | `#4DD0E1` | The player changes colour |
-| `spike_walls` | off | Kill switch: the red walls disappear mid-run |
+| `player_skin` | `pink`, `yellow`, `purple`, `beige` | The astronaut changes suit in a burst of stars |
+| `winter_event` | on | A live event: the whole level turns to snow, with white hills and falling snow, while the run carries on |
+| `coin_value` | 5 or 10 | The coins turn into gems worth that much |
+| `spike_walls` | off | Kill switch: the spiked walls vanish in a puff mid-run |
 | `double_jump` | on | A second jump in the air |
 | `tutorial_style` | experiment | Half of players see text, half see a tap hint; reaching 100 m sends `first_run_complete` |
 
@@ -244,6 +246,10 @@ server/                docker-compose for self-hosted Flagsmith and the seed scr
 skills/                Agent Skill for coding agents (setup and A/B tests through the Flagsmith CLI)
 site/                  the docs site and its in-browser playground
 ```
+
+## Credits
+
+Flag Runner's character, tiles and backgrounds are from [Kenney's New Platformer Pack](https://kenney.nl/assets/new-platformer-pack) (version 1.1), released under [Creative Commons CC0](https://creativecommons.org/publicdomain/zero/1.0/). The licence file is in [`Sample/Assets`](Sample/Assets/Kenney-New-Platformer-Pack-License.txt).
 
 ## Contributing
 
