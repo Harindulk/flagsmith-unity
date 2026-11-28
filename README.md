@@ -38,6 +38,25 @@ Built for [Flagsmith Toggle Wars](https://www.wemakedevs.org/hackathons/flagsmit
 
 Tests: 26 for the package (run in the Unity Editor, one of them against a live self-hosted server) and 13 for the skill script, site and server helper (run on every push).
 
+### What backs each claim
+
+| Claim | Evidence |
+|---|---|
+| A flag change reaches a running game without a rebuild | [Clip](docs/media/live-tuning.gif) of the dashboard and the game side by side, and the [hosted playground](https://harindulk.github.io/flagsmith-unity/#play) |
+| It works against a real Flagsmith server | `RealServer_ServesFlags_AndStoresExperimentEvents` in [`LiveServerTests.cs`](com.flagsmith.unity/Tests/Editor/LiveServerTests.cs), run against self-hosted 2.295.2 and against Flagsmith Cloud |
+| It works in WebGL | The hosted playground is a WebGL build of the sample |
+| It works on Android | Emulator only: [screenshot](docs/media/android.png) of an ARM64 build on an Android 16 emulator. No physical phone yet |
+| The game keeps running when the server is down | `Offline_FallsBackToCache_ThenDefaults`, `QueuedEvents_SurviveARestart` and `RateLimited_KeepsEventsForTheNextFlush` in [`FlagsmithClientTests.cs`](com.flagsmith.unity/Tests/Editor/FlagsmithClientTests.cs) |
+| Each player is counted once per session, and only if enrolled | `ExperimentFlag_RecordsOneExposurePerSession` and `ExperimentFlag_NoExposureWhenNotEnrolledOrDisabled` |
+| A build cannot ship a server-side key | `ServerSideKey_IsRefused` |
+| The experiment loop works end to end | [Results screenshot](docs/media/experiment-results.png) from self-hosted Flagsmith: 800 simulated players from [`server/simulate.py`](server/simulate.py) plus 16 of our own test sessions. The lift is simulated |
+| The same test runs on real players | [docs/live-experiment.md](docs/live-experiment.md), with the current count |
+| One player can get a different game | [Clip](docs/media/two-players.gif) of two players on one build, and the [Editor window](docs/media/editor-per-player.png) that sets it |
+| An agent can check a result and ship the winner | [Recorded run](docs/agent-run.md#what-the-agent-did) with its commands and output. Approval was in the prompt |
+| A person can stop an agent's write | [Second run](docs/agent-run.md#a-run-where-the-client-asks-a-person): the dialog went unanswered, so the flag did not change. No approved click has been recorded |
+| An agent can set a game up from nothing | [The setup job](docs/agent-run.md#the-setup-job), a separate run on a fresh project. The setup and the check-and-ship job were not recorded as one run |
+| The skill's guard blocks unapproved changes | [`tests/test_scripts.py`](tests/test_scripts.py), run on every push |
+
 ## What you get
 
 - Flags and remote config for the whole environment or per player (identity), with traits, typed values (`GetValue<float>`, `int`, `bool`, `string`) and defaults.
@@ -141,7 +160,7 @@ The dashboard then does the statistics.
 
 The hosted demo runs this experiment for real, on Flagsmith Cloud's free plan. Flagsmith Cloud decides which tutorial each visitor gets, and the game's exposure and `first_run_complete` events go to Cloud's events API. It started on 28 November 2026.
 
-A visitor counts once they take over from autoplay and start a run of their own. The bot's runs and automated browsers are left out. The playground build still talks to the page instead of a server, so the page forwards two things to Flagsmith Cloud: the lookup of each visitor's `tutorial_style` (once per page load) and the experiment events. The tuning flags stay on the page, so every visitor has their own panel. The data sent is a random player ID, the variant shown and whether the first run reached 100 m.
+A visitor counts once they take over from autoplay and start a run of their own. The bot's runs and automated browsers are left out. The playground build still talks to the page instead of a server, so the page forwards two things to Flagsmith Cloud: the lookup of each visitor's `tutorial_style` (once per page load) and the experiment events. The tuning flags stay on the page, so every visitor has their own panel. If Cloud does not answer within four seconds, that visitor gets the text tutorial and is left out of the test, and the page does not retry an event that fails to send, so the counts can run a little low. The data sent is a random player ID, the variant shown and whether the first run reached 100 m.
 
 The numbers, however small, are in [docs/live-experiment.md](docs/live-experiment.md). When this was written the test had just gone live and had no players yet.
 
