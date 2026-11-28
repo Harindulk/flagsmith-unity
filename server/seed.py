@@ -20,9 +20,10 @@ FLAGS = {
     "jump_force": ("STANDARD", "13", True, None),
     "gravity_scale": ("STANDARD", "3.2", True, None),
     "coin_value": ("STANDARD", "1", True, None),
-    "player_color": ("STANDARD", "#FFB020", True, None),
+    "player_skin": ("STANDARD", "green", True, None),  # green, pink, yellow, purple or beige
     "double_jump": ("STANDARD", None, True, None),
     "spike_walls": ("STANDARD", None, True, None),  # the "buggy feature" kill switch
+    "winter_event": ("STANDARD", None, False, None),  # a live event: off until someone turns it on
     "tutorial_style": ("MULTIVARIATE", "text", True, [("hand", 50)]),
 }
 METRIC_EVENT = "first_run_complete"

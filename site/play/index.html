@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Flag Runner playground</title>
+<link rel="icon" href="data:,">
 <style>
   html, body { margin: 0; height: 100%; background: #141721; overflow: hidden; }
   canvas { display: block; width: 100%; height: 100%; outline: none; }
@@ -20,21 +21,46 @@
 // so the real Flagsmith for Unity code runs unchanged and no server is needed. In your game, Flagsmith answers.
 const API = 'https://playground.invalid/api/v1/';
 const fallback = {
-  flags: { run_speed: 7, jump_force: 13, gravity_scale: 3.2, coin_value: 1, player_color: '#FFB020',
-           double_jump: false, spike_walls: true },
+  flags: { run_speed: 7, jump_force: 13, gravity_scale: 3.2, coin_value: 1, player_skin: 'green',
+           double_jump: false, spike_walls: true, winter_event: false },
   onEvents() {}, onRequest() {}
 };
+const realFetch = window.fetch.bind(window);
 const host = (() => { try { return parent !== window && parent.playground ? parent.playground : fallback; } catch { return fallback; } })();
 
+// The tutorial A/B test is real on the live site: Flagsmith Cloud decides which tutorial each visitor gets and
+// receives the game's experiment events (an anonymous random id, the variant shown, and "first run complete").
+// Tuning flags stay on this page, so every visitor has their own panel. Automated browsers (tests, crawlers) never
+// join, and "?cloud" points the page at a separate test environment instead.
+const CLOUD = (() => {
+  const live = /(^|\.)harindu\.dev$|\.github\.io$/.test(location.hostname) && !navigator.webdriver;
+  const test = new URLSearchParams(location.search).has('cloud');
+  if (!live && !test) return null;
+  return { key: test ? '2KSEgoCYijT7kKNk8787hi' : 'C4Ky5T3N8KYSnWzCKcMY4B', flag: null, asked: null };
+})();
+// One request per page load (the free plan has a monthly request limit), answered within 4 s or not at all.
+const askCloud = identifier => CLOUD.asked || (CLOUD.asked = Promise.race([
+  realFetch('https://edge.api.flagsmith.com/api/v1/identities/', { method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'X-Environment-Key': CLOUD.key }, body: JSON.stringify({ identifier, traits: [] }) })
+    .then(r => r.ok ? r.json() : null).then(d => (d && d.flags.find(f => f.feature.name === 'tutorial_style')) || null),
+  new Promise(res => setTimeout(() => res(null), 4000)),
+]).catch(() => null).then(flag => { CLOUD.flag = flag; host.onCloud && host.onCloud(flag); return flag; }));
+
 function flagsFor(identifier) {
-  const f = host.flags, on = { double_jump: f.double_jump, spike_walls: f.spike_walls };
+  const f = host.flags, on = { double_jump: f.double_jump, spike_walls: f.spike_walls, winter_event: f.winter_event };
   const list = Object.keys(f).map((name, i) => ({
     feature: { id: i + 1, name, type: 'STANDARD' },
     enabled: name in on ? on[name] : true,
     feature_state_value: name in on ? null : String(f[name]),
     variant: null,
   }));
-  // 50/50 split by identity, like the seeded experiment on the real server.
+  if (CLOUD) {
+    // No answer from Flagsmith Cloud: the default tutorial, outside the experiment (so no events are sent for it).
+    list.push(CLOUD.flag || { feature: { id: 99, name: 'tutorial_style', type: 'MULTIVARIATE' }, enabled: true,
+      feature_state_value: 'text', variant: null, metadata: null });
+    return list;
+  }
+  // Away from the live site nothing leaves the page: a pretend 50/50 split by identity.
   let h = 0; for (const c of identifier) h = (h * 31 + c.charCodeAt(0)) >>> 0;
   const hand = h % 2 === 1;
   list.push({ feature: { id: 99, name: 'tutorial_style', type: 'MULTIVARIATE' }, enabled: true,
@@ -48,7 +74,6 @@ const json = (body, status = 200) => {
   const text = JSON.stringify(body);
   return new Response(text, { status, headers: { 'Content-Type': 'application/json', 'Content-Length': String(new TextEncoder().encode(text).length), 'Cache-Control': 'no-store' } });
 };
-const realFetch = window.fetch.bind(window);
 window.fetch = async (input, init = {}) => {
   const url = typeof input === 'string' ? input : input.url;
   if (!url.startsWith(API)) return realFetch(input, init);
@@ -56,6 +81,10 @@ window.fetch = async (input, init = {}) => {
   const path = url.slice(API.length).split('?')[0];
   let body = null; try { body = JSON.parse(await req.text()); } catch {}
   host.onRequest(req.method, path, body);
+  if (path === 'identities/' && body && CLOUD) await askCloud(body.identifier);
+  if (path === 'events/' && body && CLOUD && CLOUD.flag)
+    realFetch('https://events.api.flagsmith.com/v1/events', { method: 'POST', keepalive: true,
+      headers: { 'Content-Type': 'application/json', 'X-Environment-Key': CLOUD.key }, body: JSON.stringify(body) }).catch(() => {});
   if (path === 'identities/' && body) return json({ identifier: body.identifier, traits: body.traits || [], flags: flagsFor(body.identifier) });
   // Unity reads the body stream of every reply, so never answer with a null body.
   if (path === 'events/' && body) { host.onEvents(body.events || []); return json({}, 202); }

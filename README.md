@@ -8,7 +8,7 @@ Change a jump height, switch off a broken feature or run an experiment on your t
 
 Community package, MIT licensed. It is not an official Flagsmith SDK.
 
-![Flag Runner changing live: run speed, colour, gravity and a kill switch edited in Flagsmith while the game keeps running](docs/media/live-tuning.gif)
+![Flag Runner changing live: run speed, the character's skin and a winter event edited in Flagsmith while the game keeps running](docs/media/live-tuning.gif)
 
 *The sample game playing itself while `server/demo.py` edits flags in a self-hosted Flagsmith. The build never changes.*
 
@@ -27,11 +27,11 @@ Why it exists: Flagsmith has no Unity SDK. [Its FAQ](https://docs.flagsmith.com/
 
 Built for [Flagsmith Toggle Wars](https://www.wemakedevs.org/hackathons/flagsmith), 26 to 29 November 2026. Everything below was written in that window.
 
-**Try it without installing anything:** [play Flag Runner in your browser](https://harindulk.github.io/flagsmith-unity/#play) and move the flags beside it. That page runs the real package in a WebGL build against a stand-in for the Flagsmith API inside the page, so it needs no login. For the real thing, [two commands](#try-the-demo) start self-hosted Flagsmith 2.295.2 with the flags, a metric and a running experiment.
+**Try it without installing anything:** [play Flag Runner in your browser](https://harindulk.github.io/flagsmith-unity/#play) and move the flags beside it. That page runs the real package in a WebGL build against a stand-in for the Flagsmith API inside the page, so it needs no login. Its tutorial A/B test is real and runs on Flagsmith Cloud. For the real thing, [two commands](#try-the-demo) start self-hosted Flagsmith 2.295.2 with the flags, a metric and a running experiment.
 
 | Track | What it asks for | Where to see it |
 |---|---|---|
-| 1. Experimentation | A clear question, versions behind a flag, a metric from events, results you can explain | [The tutorial experiment](#ab-testing-with-flagsmith-experimentation): question, rule set in advance, result and the decision |
+| 1. Experimentation | A clear question, versions behind a flag, a metric from events, results you can explain | [The tutorial experiment](#ab-testing-with-flagsmith-experimentation): question, rule set in advance, result and the decision, on simulated players. The [same test on real players](docs/live-experiment.md) runs on the hosted demo |
 | 2. Agents | Flagsmith CLI, saves real time, a human approves changes, clear output | [One recorded agent run](docs/agent-run.md): 20 seconds from prompt to shipped winner (approval was given in the prompt), with the commands it ran and their output |
 | 3. Open source | Self-hosted Flagsmith, integrations and developer tools, easy to reuse | [`server/`](server/) (pinned Docker Compose and a seed script), the [package](com.flagsmith.unity/) with its Editor window, and a [one-URL install](#install) |
 | 4. Agent Skill | Completes the whole job, token efficiency, creative use of the CLI, safety around production | [`skills/flagsmith-unity`](skills/flagsmith-unity/SKILL.md) and the [token counts](docs/agent-run.md) for its demo run: 1,522 output tokens |
@@ -46,7 +46,7 @@ Tests: 26 for the package (run in the Unity Editor, one of them against a live s
 - Offline support: The last good response is cached on disk. Without a network the game starts with cached flags, and without a cache it uses your defaults.
 - An Editor window (Window > Flagsmith) that lists an environment's flags and lets you toggle them and edit their values through the Management API, for everyone or for one player (a tester's device, or the game you are running).
 - WebGL support: everything runs on Unity's main thread with `UnityWebRequest`, without background threads, `Task.Delay` or native plugins.
-- Self-hosted Flagsmith, which everything here was tested against, and Flagsmith Cloud, which uses the same client API but has not been tested yet.
+- Self-hosted Flagsmith and Flagsmith Cloud. Most of the testing was against a self-hosted server. Flags, experiment flags and events were also checked against Flagsmith Cloud's free plan.
 
 ## Install
 
@@ -137,6 +137,14 @@ The dashboard then does the statistics.
 
 *Synthetic data, simulated lift. `simulate.py` gives the hand variant a 62% finish rate and text 50% on purpose, to show the whole loop working: exposures, metric, statistics, then shipping the winner. It is not evidence about real players.*
 
+### The same test on real players
+
+The hosted demo runs this experiment for real, on Flagsmith Cloud's free plan. Flagsmith Cloud decides which tutorial each visitor gets, and the game's exposure and `first_run_complete` events go to Cloud's events API. It started on 28 November 2026.
+
+A visitor counts once they take over from autoplay and start a run of their own. The bot's runs and automated browsers are left out. The playground build still talks to the page instead of a server, so the page forwards two things to Flagsmith Cloud: the lookup of each visitor's `tutorial_style` (once per page load) and the experiment events. The tuning flags stay on the page, so every visitor has their own panel. The data sent is a random player ID, the variant shown and whether the first run reached 100 m.
+
+The numbers, however small, are in [docs/live-experiment.md](docs/live-experiment.md).
+
 An exposure is recorded only when the flag is on and the identity is enrolled (`Flag.InExperiment`), so players outside the experiment never skew the results. Each player keeps the same ID between sessions (stored in `PlayerPrefs`), so they stay in the same variant. Set your own ID in the component, for example your account system's user ID, when players sign in on several devices.
 
 ## Live Tuning
@@ -147,7 +155,7 @@ An exposure is recorded only when the flag is on and the identity is enrolled (`
 
 Type a player ID into **Only this player** and press Reload. In Play mode, **Running** fills in the ID of the game you are playing; on a tester's device it is `FlagsmithBehaviour.Identifier`, which Flag Runner shows at the bottom of its panel. The window then lists the flags as that player gets them. **Save** changes a flag for that player only, and **Clear** puts them back on the environment's value. Everyone else is untouched.
 
-![The Flagsmith window in per-player mode: run_speed and player_color overridden for one player, each with a Clear button](docs/media/editor-per-player.png)
+![The Flagsmith window in per-player mode: run_speed and player_skin overridden for one player, each with a Clear button](docs/media/editor-per-player.png)
 
 This uses Flagsmith's identity overrides through the Management API. Creating, updating and clearing an override were checked from the Editor against self-hosted Flagsmith 2.295.2.
 
@@ -160,7 +168,7 @@ The repository includes a self-hosted Flagsmith setup with Experimentation turne
 ```sh
 cd server
 docker compose up -d          # Flagsmith on http://localhost:8000 (first start takes a minute)
-python3 seed.py               # project, 8 flags, a metric and a running 50/50 experiment
+python3 seed.py               # project, 9 flags, a metric and a running 50/50 experiment
 ```
 
 This setup is for local demos only. It uses the default secrets from Flagsmith's compose file, allows any host, and `seed.py` creates an admin with a fixed password. For a real deployment follow [Flagsmith's self-hosting guide](https://docs.flagsmith.com/deployment-self-hosting) and set your own `DJANGO_SECRET_KEY`, database password, `DJANGO_ALLOWED_HOSTS` and admin account.
@@ -182,10 +190,12 @@ What to try while it runs:
 
 | Flag | Try | What happens |
 |---|---|---|
-| `run_speed` | 7 → 12 | The run speeds up within ~2 seconds |
+| `run_speed` | 7 → 11 | The run speeds up within ~2 seconds, and from 9.5 up the astronaut leaves a trail |
 | `gravity_scale`, `jump_force` | any number | Jumps feel floatier or heavier |
-| `player_color` | `#4DD0E1` | The player changes colour |
-| `spike_walls` | off | Kill switch: the red walls disappear mid-run |
+| `player_skin` | `pink`, `yellow`, `purple`, `beige` | The astronaut changes suit in a burst of stars |
+| `winter_event` | on | A live event: the whole level turns to snow, with white hills and falling snow, while the run carries on |
+| `coin_value` | 5 or 10 | The coins turn into gems worth that much |
+| `spike_walls` | off | Kill switch: the spiked walls vanish in a puff mid-run |
 | `double_jump` | on | A second jump in the air |
 | `tutorial_style` | experiment | Half of players see text, half see a tap hint; reaching 100 m sends `first_run_complete` |
 
@@ -197,7 +207,7 @@ flagsmith flag update run_speed --value 11 --identifier player-1a8a76fb7ee9
 
 ![Two players on the same build: the right one turns cyan and speeds up after a per-player override in Flagsmith](docs/media/two-players.gif)
 
-*Two browsers running the same WebGL build against self-hosted Flagsmith. Only the player on the right was given an override, first `player_color`, then `run_speed`.*
+*Two browsers running the same WebGL build against self-hosted Flagsmith. Only the player on the right was given overrides: `player_skin`, then `winter_event`, then `run_speed`.*
 
 Only that player's game changes, on its next refresh. `flagsmith flag delete run_speed --identifier player-1a8a76fb7ee9` removes the override.
 
@@ -224,10 +234,11 @@ The full guide and API reference are in [Documentation~/index.md](com.flagsmith.
 |---|---|
 | Unity Editor (macOS) | Tested: 26 automated tests, including one against a live self-hosted server (Flagsmith 2.295.2, pinned in `server/docker-compose.yml`) |
 | WebGL | Tested: Flag Runner build in Chrome, Live Tuning and experiment events confirmed in Flagsmith. The hosted playground is a 5 MB download; that build uses WebAssembly 2023 features, so it needs a 2023 or newer browser (Safari 16.4+) |
+| Flagsmith Cloud | Tested on the free plan (28 November 2026): the live-server test passes against Cloud. It fetches an identity's flags, reads the experiment variant and has an event accepted by Cloud's events API. To run it yourself, set `FLAGSMITH_TEST_ENV_KEY` to the client-side key of a project that has the demo's `run_speed` and `tutorial_style` flags |
 | Android | Not verified. An IL2CPP ARM64 build installs and starts on an Android 16 emulator, and an earlier build fetched its flags from the self-hosted server there, but we have not seen the game draw: the emulator hung on our machine with both hardware and software graphics. Not yet tried on a physical phone |
 | iOS, Windows, macOS, Linux players | Uses only `UnityWebRequest` and main-thread code, but not yet tested |
 
-Experimentation was tested against self-hosted Flagsmith. Flagsmith Cloud uses the events endpoint of the official SDKs, which this package has not been tested against yet.
+Experimentation was tested against self-hosted Flagsmith and against Flagsmith Cloud's free plan, where events go to the same events endpoint the official SDKs use.
 
 ## Known limits
 
@@ -244,6 +255,10 @@ server/                docker-compose for self-hosted Flagsmith and the seed scr
 skills/                Agent Skill for coding agents (setup and A/B tests through the Flagsmith CLI)
 site/                  the docs site and its in-browser playground
 ```
+
+## Credits
+
+Flag Runner's character, tiles and backgrounds are from [Kenney's New Platformer Pack](https://kenney.nl/assets/new-platformer-pack) (version 1.1), released under [Creative Commons CC0](https://creativecommons.org/publicdomain/zero/1.0/). The licence file is in [`Sample/Assets`](Sample/Assets/Kenney-New-Platformer-Pack-License.txt).
 
 ## Contributing
 

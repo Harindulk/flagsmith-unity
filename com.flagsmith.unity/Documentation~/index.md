@@ -203,7 +203,7 @@ A response that isn't a flags payload counts as a failure and is never cached: a
 
 Window > Flagsmith lists the flags of one environment and lets you change them.
 
-![The Flagsmith window in the Unity Editor listing eight flags, with run_speed edited and its Save button active](../../docs/media/editor-window.png)
+![The Flagsmith window in the Unity Editor listing nine flags, with run_speed edited and its Save button active](../../docs/media/editor-window.png)
 
 | Field | What to enter |
 |---|---|
@@ -341,14 +341,14 @@ The repository has a self-hosted Flagsmith setup with Experimentation turned on,
 ```sh
 cd server
 docker compose up -d          # Flagsmith on http://localhost:8000 (the first start takes a minute)
-python3 seed.py               # project, 8 flags, a metric and a running 50/50 experiment
+python3 seed.py               # project, 9 flags, a metric and a running 50/50 experiment
 ```
 
 `seed.py` prints the dashboard login and writes the connection details the sample needs into `Sample/Assets/Resources/flagsmith.json`, which git ignores. Open `Sample/` in Unity and press Play.
 
-![The Flagsmith dashboard listing Flag Runner's eight flags](../../docs/media/dash-features.png)
+![The Flagsmith dashboard listing Flag Runner's nine flags](../../docs/media/dash-features.png)
 
-To record or present it hands-free, press **A** in the game so it plays itself, then run `python3 demo.py`. It changes speed, colour, gravity, the spike walls and coin value on a timeline, then puts everything back.
+To record or present it hands-free, press **A** in the game so it plays itself, then run `python3 demo.py`. It changes the speed, the skin, the winter event, the spike walls and the coin value on a timeline, then puts everything back.
 
 | Command | Does |
 |---|---|

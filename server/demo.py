@@ -10,12 +10,12 @@ from flag import set_flag, states
 
 STEPS = [  # (seconds to wait first, flag, new value)
     (4, "run_speed", "11"),
-    (5, "player_color", "#4DD0E1"),
-    (5, "gravity_scale", "1.6"),
-    (6, "gravity_scale", "3.2"),
-    (4, "spike_walls", "off"),
+    (5, "player_skin", "pink"),
+    (5, "winter_event", "on"),
+    (6, "spike_walls", "off"),
     (5, "coin_value", "5"),
-    (5, "run_speed", "7"),
+    (6, "winter_event", "off"),
+    (4, "run_speed", "7"),
 ]
 
 if __name__ == "__main__":

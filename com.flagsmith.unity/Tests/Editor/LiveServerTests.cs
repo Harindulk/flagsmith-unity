@@ -9,6 +9,8 @@ namespace Flagsmith.Tests
     /// <summary>
     /// Runs against the self-hosted server from server/ after `python3 server/seed.py`.
     /// Skipped when that seed output is missing.
+    /// To run it against another server, set FLAGSMITH_TEST_ENV_KEY to a client-side key whose project has the
+    /// demo flags. Leave FLAGSMITH_TEST_API_URL unset for Flagsmith Cloud.
     /// </summary>
     [Category("Integration")]
     public class LiveServerTests
@@ -18,6 +20,12 @@ namespace Flagsmith.Tests
         [SetUp]
         public void SetUp()
         {
+            var key = System.Environment.GetEnvironmentVariable("FLAGSMITH_TEST_ENV_KEY");
+            if (!string.IsNullOrEmpty(key))
+            {
+                seed = new JObject { ["environment_key"] = key, ["api_url"] = System.Environment.GetEnvironmentVariable("FLAGSMITH_TEST_API_URL") };
+                return;
+            }
             var path = Path.GetFullPath(Path.Combine(Application.dataPath, "../../server/.seed.json"));
             if (!File.Exists(path)) Assert.Ignore("No seeded local server (run server/seed.py).");
             seed = JObject.Parse(File.ReadAllText(path));
