@@ -32,7 +32,7 @@ Built for [Flagsmith Toggle Wars](https://www.wemakedevs.org/hackathons/flagsmit
 | Track | What it asks for | Where to see it |
 |---|---|---|
 | 1. Experimentation | A clear question, versions behind a flag, a metric from events, results you can explain | [The tutorial experiment](#ab-testing-with-flagsmith-experimentation): question, rule set in advance, result and the decision, on simulated players. The [same test on real players](docs/live-experiment.md) runs on the hosted demo |
-| 2. Agents | Flagsmith CLI, saves real time, a human approves changes, clear output | [One recorded agent run](docs/agent-run.md): 20 seconds from prompt to shipped winner (approval was given in the prompt), with the commands it ran and their output |
+| 2. Agents | Flagsmith CLI, saves real time, a human approves changes, clear output | [One recorded agent run](docs/agent-run.md): 20 seconds from prompt to shipped winner (approval was given in the prompt), with the commands it ran and their output. A [second run](docs/agent-run.md#a-run-where-the-client-asks-a-person) puts the approval in a dialog outside the agent: nobody approved, so nothing changed |
 | 3. Open source | Self-hosted Flagsmith, integrations and developer tools, easy to reuse | [`server/`](server/) (pinned Docker Compose and a seed script), the [package](com.flagsmith.unity/) with its Editor window, and a [one-URL install](#install) |
 | 4. Agent Skill | Completes the whole job, token efficiency, creative use of the CLI, safety around production | [`skills/flagsmith-unity`](skills/flagsmith-unity/SKILL.md) and the [token counts](docs/agent-run.md) for its demo run: 1,522 output tokens |
 
@@ -235,7 +235,7 @@ The full guide and API reference are in [Documentation~/index.md](com.flagsmith.
 | Unity Editor (macOS) | Tested: 26 automated tests, including one against a live self-hosted server (Flagsmith 2.295.2, pinned in `server/docker-compose.yml`) |
 | WebGL | Tested: Flag Runner build in Chrome, Live Tuning and experiment events confirmed in Flagsmith. The hosted playground is a 5 MB download; that build uses WebAssembly 2023 features, so it needs a 2023 or newer browser (Safari 16.4+) |
 | Flagsmith Cloud | Tested on the free plan (28 November 2026): the live-server test passes against Cloud. It fetches an identity's flags, reads the experiment variant and has an event accepted by Cloud's events API. To run it yourself, set `FLAGSMITH_TEST_ENV_KEY` to the client-side key of a project that has the demo's `run_speed` and `tutorial_style` flags |
-| Android | Not verified. An IL2CPP ARM64 build installs and starts on an Android 16 emulator, and an earlier build fetched its flags from the self-hosted server there, but we have not seen the game draw: the emulator hung on our machine with both hardware and software graphics. Not yet tried on a physical phone |
+| Android | Tested on an emulator: an IL2CPP ARM64 build on an Android 16 emulator (software graphics) draws the game, fetches its flags from the self-hosted server over the local network and picks up flag changes mid-run ([screenshot](docs/media/android.png)). Not yet tried on a physical phone |
 | iOS, Windows, macOS, Linux players | Uses only `UnityWebRequest` and main-thread code, but not yet tested |
 
 Experimentation was tested against self-hosted Flagsmith and against Flagsmith Cloud's free plan, where events go to the same events endpoint the official SDKs use.
