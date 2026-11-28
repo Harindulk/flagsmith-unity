@@ -1,6 +1,6 @@
 # One recorded agent run
 
-This is the unedited record of a coding agent using the [Agent Skill](../skills/flagsmith-unity/SKILL.md) to check an A/B test against a rule and ship the winner. It ran on 27 November 2026 against self-hosted Flagsmith 2.295.2, with Claude Code (model `claude-sonnet-5-5`) in headless mode. The agent had the skill, the Flagsmith CLI v2 and nothing else from this repo.
+This is the record of a coding agent using the [Agent Skill](../skills/flagsmith-unity/SKILL.md) to check an A/B test against a rule and ship the winner. It ran on 27 November 2026 against self-hosted Flagsmith 2.295.2, with Claude Code (model `claude-sonnet-5-5`) in headless mode. The agent had the skill, the Flagsmith CLI v2 and nothing else from this repo.
 
 | | |
 |---|---|
@@ -9,7 +9,7 @@ This is the unedited record of a coding agent using the [Agent Skill](../skills/
 | Output tokens | 1,522 |
 | Input tokens | 47,237 new, plus 301,621 read from the prompt cache |
 | Cost | $0.23 |
-| Flagsmith commands run | 5 (3 reads, 1 write, 1 check) |
+| Flagsmith commands run | 5: `flagsmith config`, `experiment.sh results`, `experiment.sh ship`, `flagsmith eval`, and one `cat flagsmith.json`. The agent's own words are quoted; its file reads of the skill are left out |
 
 ## The prompt
 
@@ -41,7 +41,7 @@ scripts/experiment.sh results tutorial_style
 {"as_of":"2026-11-27T05:02:27.118998Z","metrics":[{"metric_id":1,"players":{"control":{"conversions":214,"n":399,"rate_pct":53.6},"hand":{"conversions":268,"n":417,"rate_pct":64.3}},"vs_control":{"hand":{"chance_to_win_pct":99.7,"conclusive":true,"interval_pct":[5.9,33.7],"lift_pct":19.8}}}]}
 ```
 
-The script asks Flagsmith to refresh the experiment, then cuts the API's response down to these fields with `jq`. That is where most of the token saving comes from: the raw results response is many times longer.
+The script asks Flagsmith to refresh the experiment, then cuts the API's response down to these fields with `jq`. `results` also sends two refresh requests, which change nothing but the cached numbers. The filtering is where the token saving comes from: measured on 28 November, the raw results response for this experiment is 1,458 bytes and the script's output is 294.
 
 Agent: "The rule passes: 99.7% chance to win, with 399 and 417 players per arm. You approved shipping in Development, so I'm shipping now."
 
