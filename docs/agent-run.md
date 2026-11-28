@@ -96,6 +96,30 @@ error: 'Production' looks like production. Re-run with FLAGSMITH_CONFIRM_ENV='Pr
 
 Both refusals are covered by [`tests/test_scripts.py`](../tests/test_scripts.py). The agent sets `FLAGSMITH_YES` itself, so the script only forces it to stop and say what it is about to change. To make the approval a hard stop, Claude Code users can add the permission rule from [SKILL.md](../skills/flagsmith-unity/SKILL.md), which makes the client ask the human before every approved write.
 
+## A run where the client asks a person
+
+The judges asked to see the approval as a live prompt, so on 28 November 2026 the agent was run again with a hard stop outside itself. Claude Code's `--permission-prompt-tool` sent every command that needed permission to a small tool ([`docs/approval/approval_server.py`](approval/approval_server.py)). Read-only commands pass by rule. A command that carries `FLAGSMITH_YES=1` opens a dialog on the Mac and waits for a click. Same setup as above otherwise: Claude Code headless, `claude-sonnet-5-5`, the skill and the Flagsmith CLI. To use the tool yourself, name it in an MCP config file and start Claude Code with `--mcp-config <that file> --permission-prompt-tool mcp__approval__approve`. The dialog is macOS only.
+
+The prompt:
+
+> Players should get the winter event today. Turn on the winter_event flag for everyone in the Development environment. Go ahead when you are ready: my client asks me before any write.
+
+The agent ran `flagsmith config`, read the flag (`{"default_value":null,"enabled":false,"id":17,"name":"winter_event","type":"standard"}`), and then asked for the write:
+
+```sh
+FLAGSMITH_YES=1 .claude/skills/flagsmith-unity/scripts/experiment.sh flag winter_event on
+```
+
+![The dialog: the coding agent wants to run the FLAGSMITH_YES=1 command in Development, with Deny and Approve buttons](media/approval-dialog.png)
+
+**Nobody clicked Approve, and nothing changed.** This is the honest result of three runs: the dialog went unanswered each time (twice it timed out after 120 seconds, once it closed after 66), the client refused the command, and `winter_event` stayed off. The agent's report from the third run:
+
+> I haven't turned `winter_event` on. The approval dialog closed after about 66 seconds without a click, so the write never ran. Current state: `winter_event` exists in Development (Flag Runner, localhost:8000) and is still off. Nothing else changed.
+
+That run took 8 turns, 1,624 output tokens and $0.08. Of its 83 seconds, 66 were the dialog waiting.
+
+So the record shows the stop working. It does not yet show a person clicking Approve and the write going through with this tool; the approved write in the first run above went through the script's own guard, with the approval in the prompt.
+
 ## The setup job
 
 The skill's other job is setting a game up from nothing. On a fresh Unity project called Jumper, one prompt ("Set up Flagsmith in this Unity game so I can tune it live without rebuilding...") had the agent read the game's code, create four flags through the CLI (`move_speed`, `jump_height`, `coin_reward`, `enable_dash`), install the package and bind the C# fields. It took 84 seconds, 14 turns, 5,016 output tokens and 56,603 new input tokens (679,911 from cache), and cost $0.34. The project it produced compiles in Unity 6000.6.
