@@ -1,6 +1,6 @@
 # Flagsmith for Unity
 
-![Unity 6+](https://img.shields.io/badge/Unity-6000.0%2B-black?logo=unity) ![WebGL](https://img.shields.io/badge/WebGL-tested-2ea44f) ![Self-hosted Flagsmith 2.295.2](https://img.shields.io/badge/Flagsmith-self--hosted%202.295.2-7B51FB) ![License: MIT](https://img.shields.io/badge/license-MIT-blue) [![Tests](https://github.com/Harindulk/flagsmith-unity/actions/workflows/tests.yml/badge.svg)](https://github.com/Harindulk/flagsmith-unity/actions/workflows/tests.yml)
+![Unity 6, tested on 6000.6](https://img.shields.io/badge/Unity-6%20(tested%20on%206000.6)-black?logo=unity) ![WebGL](https://img.shields.io/badge/WebGL-tested-2ea44f) ![Self-hosted Flagsmith 2.295.2](https://img.shields.io/badge/Flagsmith-self--hosted%202.295.2-7B51FB) ![License: MIT](https://img.shields.io/badge/license-MIT-blue) [![Tests](https://github.com/Harindulk/flagsmith-unity/actions/workflows/tests.yml/badge.svg)](https://github.com/Harindulk/flagsmith-unity/actions/workflows/tests.yml)
 
 Feature flags, remote config and A/B tests for Unity games, powered by [Flagsmith](https://flagsmith.com).
 Ship one build, give different players different versions of your game, and see in Flagsmith which version does better.
@@ -21,7 +21,7 @@ void OnTutorialShown() => flagsmith.GetExperimentFlag("tutorial_style");    // r
 void OnLevelOneCleared() => flagsmith.TrackEvent("first_run_complete");     // the metric the experiment measures
 ```
 
-Why it exists: Flagsmith has no Unity SDK. [Its FAQ](https://docs.flagsmith.com/support/faq/sdks-implementation) points Unity developers to the .NET SDK, which runs its polling and event flushing on `System.Threading.Timer`, `Task.Run` and `Task.Delay`, and those don't work in Unity WebGL builds. The Flagsmith team's own "Unity SDK" issue ([#3623](https://github.com/Flagsmith/flagsmith/issues/3623), March 2024) was closed as not planned in November 2026. Firebase Remote Config, Statsig, ConfigCat and Unity's own Remote Config all support Unity. This package is written for Unity from the start and also speaks Flagsmith's new Experimentation API.
+Why it exists: Flagsmith has no Unity SDK. [Its FAQ](https://docs.flagsmith.com/support/faq/sdks-implementation) points Unity developers to the .NET SDK, which runs its polling and event flushing on `System.Threading.Timer`, `Task.Run` and `Task.Delay`. Unity's WebGL player has no threads, so that design cannot work there. (That comes from reading the SDK's source and Unity's WebGL limits; we have not run the .NET SDK in a WebGL build.) The Flagsmith team's own "Unity SDK" issue ([#3623](https://github.com/Flagsmith/flagsmith/issues/3623), March 2024) was closed as not planned in November 2026. Firebase Remote Config, Statsig, ConfigCat and Unity's own Remote Config all support Unity. This package is written for Unity from the start and also speaks Flagsmith's new Experimentation API.
 
 ## Toggle Wars: where to look
 
@@ -32,7 +32,7 @@ Built for [Flagsmith Toggle Wars](https://www.wemakedevs.org/hackathons/flagsmit
 | Track | What it asks for | Where to see it |
 |---|---|---|
 | 1. Experimentation | A clear question, versions behind a flag, a metric from events, results you can explain | [The tutorial experiment](#ab-testing-with-flagsmith-experimentation): question, rule set in advance, result and the decision |
-| 2. Agents | Flagsmith CLI, saves real time, a human approves changes, clear output | [One recorded agent run](docs/agent-run.md): 20 seconds from prompt to shipped winner, with every command and its output |
+| 2. Agents | Flagsmith CLI, saves real time, a human approves changes, clear output | [One recorded agent run](docs/agent-run.md): 20 seconds from prompt to shipped winner (approval was given in the prompt), with the commands it ran and their output |
 | 3. Open source | Self-hosted Flagsmith, integrations and developer tools, easy to reuse | [`server/`](server/) (pinned Docker Compose and a seed script), the [package](com.flagsmith.unity/) with its Editor window, and a [one-URL install](#install) |
 | 4. Agent Skill | Completes the whole job, token efficiency, creative use of the CLI, safety around production | [`skills/flagsmith-unity`](skills/flagsmith-unity/SKILL.md) and the [token counts](docs/agent-run.md) for its demo run: 1,522 output tokens |
 
@@ -46,11 +46,11 @@ Tests: 26 for the package (run in the Unity Editor, one of them against a live s
 - Offline support: The last good response is cached on disk. Without a network the game starts with cached flags, and without a cache it uses your defaults.
 - An Editor window (Window > Flagsmith) that lists an environment's flags and lets you toggle them and edit their values through the Management API.
 - WebGL support: everything runs on Unity's main thread with `UnityWebRequest`, without background threads, `Task.Delay` or native plugins.
-- Flagsmith Cloud and self-hosted Flagsmith.
+- Self-hosted Flagsmith, which everything here was tested against, and Flagsmith Cloud, which uses the same client API but has not been tested yet.
 
 ## Install
 
-Unity 6 (6000.0) or newer. In **Window > Package Manager > + > Install package from git URL**:
+Unity 6 (6000.0) or newer; tested on 6000.6.0f1. In **Window > Package Manager > + > Install package from git URL**:
 
 ```
 https://github.com/Harindulk/flagsmith-unity.git?path=/com.flagsmith.unity
@@ -95,7 +95,7 @@ Package Manager also offers a **Quickstart** sample (select the package, then Sa
 
 ### Or let your coding agent do it
 
-The repo ships an [Agent Skill](skills/flagsmith-unity/SKILL.md) for Claude Code, Codex, Cursor and other agents. It uses the [Flagsmith CLI](https://github.com/Flagsmith/flagsmith-cli) to create flags and experiments, edits your C# to bind fields, and waits for your OK before every change. It stays out of production unless you name the environment.
+The repo ships an [Agent Skill](skills/flagsmith-unity/SKILL.md) for Claude Code, Codex, Cursor and other agents. It uses the [Flagsmith CLI](https://github.com/Flagsmith/flagsmith-cli) to create flags and experiments, and edits your C# to bind fields. The skill tells the agent to ask before every change, and its script refuses to write until it is re-run with your approval; on an environment that looks like production it also needs the environment's exact name. The agent sets that approval itself, so for a hard stop add the permission rule from [SKILL.md](skills/flagsmith-unity/SKILL.md), which makes the client ask you.
 
 ```sh
 npx skills add Harindulk/flagsmith-unity
@@ -125,10 +125,10 @@ The dashboard then does the statistics.
 
 | | |
 |---|---|
-| Flag | `tutorial_style`: `text` (control) or `hand`, split 50/50 by player ID |
+| Flag | `tutorial_style`: `text` (a line of text, the control) or `hand` (a pulsing marker that shows where to tap), split 50/50 by player ID |
 | Exposure | `$flag_exposure`, sent at the moment the tutorial appears |
 | Metric | `first_run_complete`, sent when a player reaches 100 m on their first run |
-| Rule, set before looking | Ship a variant at 95% chance to be best, with at least 200 players per arm |
+| Rule | Ship a variant at 95% chance to be best, with at least 200 players per arm. It was fixed after a first batch of about 400 players had not reached it (94.6%), and before the second batch was sent |
 | Players | **Synthetic.** `server/simulate.py` sent 800 simulated players (named `sim-…`, every event tagged `synthetic: true`) through the same events API the game uses. The other 16 are our own test sessions |
 | Result | `hand` 64.3% (268 of 417) against `text` 53.6% (214 of 399): +19.8% lift, 99.7% chance to be best, 95% interval +5.9% to +33.7% |
 | Decision | The rule passed, so a coding agent using the [Agent Skill](skills/flagsmith-unity/SKILL.md) shipped `hand` to everyone through the same flag ([the recorded run](docs/agent-run.md)) |
@@ -157,8 +157,8 @@ python3 seed.py               # project, 8 flags, a metric and a running 50/50 e
 
 This setup is for local demos only. It uses the default secrets from Flagsmith's compose file, allows any host, and `seed.py` creates an admin with a fixed password. For a real deployment follow [Flagsmith's self-hosting guide](https://docs.flagsmith.com/deployment-self-hosting) and set your own `DJANGO_SECRET_KEY`, database password, `DJANGO_ALLOWED_HOSTS` and admin account.
 
-Then open `Sample/` in Unity and press Play, or build WebGL with
-`unity build Sample --target WebGL --execute-method SampleBuild.WebGL -o Builds/WebGL`.
+Then open `Sample/` in Unity and press Play. To build WebGL, use File > Build Profiles in the Editor, or Unity's `unity` command-line tool:
+`unity build "$PWD/Sample" --target WebGL --execute-method SampleBuild.WebGL -o "$PWD/Builds/WebGL"`.
 
 Hands-free version for recording: press **A** in the game (or open the WebGL build with `?autoplay`) so it plays itself, then run `python3 demo.py`. It changes the flags below on a timeline and restores them at the end. Every change shows a caption in the game.
 

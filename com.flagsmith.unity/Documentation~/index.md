@@ -172,7 +172,7 @@ Details that matter for clean results:
 - Event names starting with `$` are reserved, and `TrackEvent` throws for them.
 - `value` is sent as text (numbers with the invariant culture). `metadata` is any JSON-serialisable dictionary. The client adds `sdk_version`.
 
-After enough players, the experiment's page in Flagsmith shows the result. Here the rule was set beforehand (ship at 95% chance to be best with 200+ players per arm), it passed, and the experiment was completed with hand rolled out to everyone:
+After enough players, the experiment's page in Flagsmith shows the result. Here the rule (ship at 95% chance to be best with 200+ players per arm) was fixed before the second batch of players, it passed, and the experiment was completed with hand rolled out to everyone:
 
 ![Flagsmith experiment completed: hand 19.8 percent ahead of text, over 99 percent chance to be best, rolled out to everyone](../../docs/media/experiment-results.png)
 
