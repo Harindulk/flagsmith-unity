@@ -67,12 +67,14 @@ For `[SerializeField]` and public fields the real value may be set in the Inspec
 
 ## 6. Create the flags (after the user's OK)
 
+Use the guarded script for every flag, the same one the experiment job uses (run it from the project root, as in experiment.md):
+
 ```sh
-flagsmith feature create run_speed --value 7 --enabled --description "Player run speed"
-flagsmith feature create double_jump --enabled          # a bool member follows the on/off state
+scripts/experiment.sh flag run_speed 7        # prints what it will do and stops
+scripts/experiment.sh flag double_jump on     # a bool member follows the on/off state
 ```
 
-Skip names that `flagsmith feature list --jq '.[].name'` already shows.
+Show the user those "About to:" lines, and re-run each with `FLAGSMITH_YES=1` once they agree. A flag that already exists is set in this environment, not recreated, so check `flagsmith feature list --jq '.[].name'` first and ask before changing a flag you did not create.
 
 ## 7. Bind the fields
 

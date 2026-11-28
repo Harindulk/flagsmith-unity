@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 # Flagsmith Experimentation through the Flagsmith CLI (v2). Run from the folder that holds flagsmith.json.
 #
+#   experiment.sh flag    <feature> <value|on|off>                                # create a flag, or set it in this environment
 #   experiment.sh create  <feature> <control> <variant> <event> "<hypothesis>"   # flag, metric, experiment, start
 #   experiment.sh status  <feature>                                              # state and hypothesis
 #   experiment.sh results <feature>                                              # refresh, then rates, lift, chance to win
@@ -41,6 +42,27 @@ experiment() {
 }
 
 case "$cmd" in
+flag)
+  [ $# -eq 3 ] || die "usage: flag <feature> <value|on|off>"
+  value=$3
+  if [ -z "$(fs feature get "$feature" --jq .id 2>/dev/null || true)" ]; then
+    confirm "create flag $feature = $value (a new feature exists in every environment of the project)"
+    case "$value" in
+      on) fs feature create "$feature" --enabled >/dev/null ;;
+      off) fs feature create "$feature" >/dev/null ;;
+      *) fs feature create "$feature" --value "$value" --enabled >/dev/null ;;
+    esac
+    echo "created $feature = $value"
+  else
+    confirm "set flag $feature to $value"
+    case "$value" in
+      on) fs --yes flag update "$feature" --enable >/dev/null ;;
+      off) fs --yes flag update "$feature" --disable >/dev/null ;;
+      *) fs --yes flag update "$feature" --value "$value" >/dev/null ;;
+    esac
+    echo "set $feature = $value"
+  fi
+  ;;
 create)
   [ $# -eq 6 ] || die "usage: create <feature> <control> <variant> <event> \"<hypothesis>\""
   control=$3 variant=$4 event=$5 hypothesis=$6
@@ -113,5 +135,5 @@ ship)
   confirm "complete experiment $id and serve '$winner' to everyone through $feature"
   fs api "$BASE/experiments/$id/complete/" -X POST --input - --jq '{name, status}' <<<"$body"
   ;;
-*) die "unknown command '$cmd' (create, status, results, ship)" ;;
+*) die "unknown command '$cmd' (flag, create, status, results, ship)" ;;
 esac

@@ -20,7 +20,7 @@ Two jobs. Pick one, read only its reference file, and finish it end to end.
 ## Safety rules (always)
 
 1. **Read before you write.** Start with `flagsmith config` (project, environment, API, and where each comes from; run `flagsmith auth status` only if it reports a credential problem). Say which project and environment you will change.
-2. **Every write needs the user's OK.** Show the exact commands first. `scripts/experiment.sh` refuses to write until you re-run it with `FLAGSMITH_YES=1`, which you only do after the user agrees.
+2. **Every write needs the user's OK.** Show the exact commands first. Make every change to Flagsmith through `scripts/experiment.sh` (`flag`, `create`, `ship`), never with `flagsmith feature create` or `flagsmith flag update` directly. It refuses to write until you re-run it with `FLAGSMITH_YES=1`, which you only do after the user agrees.
 3. **Production is off limits by default.** Work in a Development or Staging environment. If the environment's name contains "prod", "prd" or "live" (any case), stop and ask; the script then also needs `FLAGSMITH_CONFIRM_ENV=<exact name>`.
 4. **Only client-side keys go into the game.** The environment key from `flagsmith environment list` is public and safe in a build. Never put a server-side key (`ser.…`), a Master API key or a login token in project files, scripts or chat. Credentials stay in the CLI's keyring or an environment variable.
 5. **Never delete** features, segments or experiments unless the user asked for that exact deletion.
