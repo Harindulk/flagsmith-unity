@@ -168,12 +168,13 @@ flagsmith.TrackEvent(<span class="tok-s">"first_run_complete"</span>);</code></p
     <div class="txt">
       <h2 class="h2" id="ed-h">Tune it without leaving Unity</h2>
       <p>Window &gt; Flagsmith lists an environment's flags. Flip a toggle or edit a value, press Save, and the game in Play mode picks it up on its next refresh.</p>
+      <p>Enter a player ID and the same window changes a flag for that player only: one tester's phone, or the game you are running.</p>
       <p>The admin token lives in EditorPrefs on your machine, so it never ends up in the project or in version control.</p>
       <p><a class="link" href="docs/the-editor-window.html">Editor window guide</a></p>
     </div>
     <figure class="fig framed">
-      <img src="media/editor-window.png" width="1040" height="820" alt="The Flagsmith window in the Unity Editor listing eight flags, with run_speed edited to 11 and its Save button active" loading="lazy">
-      <figcaption>Window &gt; Flagsmith connected to self-hosted Flagsmith, run_speed edited and ready to save.</figcaption>
+      <img src="media/editor-per-player.png" width="1120" height="850" alt="The Flagsmith window in the Unity Editor in per-player mode: run_speed and player_color overridden for one player, each with a Clear button" loading="lazy">
+      <figcaption>Window &gt; Flagsmith on self-hosted Flagsmith, with two flags overridden for one player.</figcaption>
     </figure>
   </div>
 </section>

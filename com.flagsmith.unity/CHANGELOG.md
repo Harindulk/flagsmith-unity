@@ -2,6 +2,11 @@
 
 All notable changes to this package are listed here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and the package uses [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Added
+- Editor window: per-player mode. Enter a player ID (or press Running in Play mode) to list the flags as that player gets them, save an override for that player only, and clear it.
+
 ## [0.1.0] - 2026-11-27
 
 ### Added

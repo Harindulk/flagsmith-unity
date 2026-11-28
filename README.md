@@ -44,7 +44,7 @@ Tests: 26 for the package (run in the Unity Editor, one of them against a live s
 - Live Tuning: `FlagsmithBehaviour` refreshes flags in the background and raises `FlagsChanged`. Fields marked `[FlagsmithValue]` update themselves. Edit a value in the dashboard or in the Unity Editor and a running build picks it up on its next refresh.
 - Experimentation: `GetExperimentFlag` records a `$flag_exposure` when the player is enrolled in a running experiment, and `TrackEvent` records the conversions you measure. Events are batched, de-duplicated, capped at the API's 2 MiB batch limit, saved to disk when the app is paused and retried after network failures.
 - Offline support: The last good response is cached on disk. Without a network the game starts with cached flags, and without a cache it uses your defaults.
-- An Editor window (Window > Flagsmith) that lists an environment's flags and lets you toggle them and edit their values through the Management API.
+- An Editor window (Window > Flagsmith) that lists an environment's flags and lets you toggle them and edit their values through the Management API, for everyone or for one player (a tester's device, or the game you are running).
 - WebGL support: everything runs on Unity's main thread with `UnityWebRequest`, without background threads, `Task.Delay` or native plugins.
 - Self-hosted Flagsmith, which everything here was tested against, and Flagsmith Cloud, which uses the same client API but has not been tested yet.
 
@@ -142,6 +142,14 @@ An exposure is recorded only when the flag is on and the identity is enrolled (`
 ## Live Tuning
 
 `FlagsmithBehaviour` refreshes every 60 seconds by default. While you tune, set **Refresh Seconds** to 1 or 2, open **Window > Flagsmith** next to the Game view, and change values while the game runs. Rows that changed are saved through the Management API, and the game picks them up on its next refresh. The Editor window needs an admin token (an Organisation API key or your user API token), which it keeps in `EditorPrefs` on your machine and never writes into the project.
+
+### One player at a time
+
+Type a player ID into **Only this player** and press Reload. In Play mode, **Running** fills in the ID of the game you are playing; on a tester's device it is `FlagsmithBehaviour.Identifier`, which Flag Runner shows at the bottom of its panel. The window then lists the flags as that player gets them. **Save** changes a flag for that player only, and **Clear** puts them back on the environment's value. Everyone else is untouched.
+
+![The Flagsmith window in per-player mode: run_speed and player_color overridden for one player, each with a Clear button](docs/media/editor-per-player.png)
+
+This uses Flagsmith's identity overrides through the Management API. Creating, updating and clearing an override were checked from the Editor against self-hosted Flagsmith 2.295.2.
 
 Set the refresh back to 60 seconds or more for release builds. Every refresh is an API request per player.
 
